@@ -16,7 +16,7 @@ OpenTelemetry-Go-Compile-Instrumentation provides compile time  [OpenTelemetry](
 
 ## Getting Started
 
-TBD
+Run `sh -x build.sh` to show instrumentation example. In this example, we will inject a piece of code into the `main` function of the `main` package under the `demo` module to output the "Entering hook" string. This injected code comes from the `sdk` module.
 
 
 ## Contributing
