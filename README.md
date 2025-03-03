@@ -28,6 +28,7 @@ cd /var/folders/x9/fddsvlt5363c0plvvw8_2mr80000gn/T/go-build2020695287
 ls -l b001
 
 ### Inspect files:
+```bash
 cat modified.go
 
 
