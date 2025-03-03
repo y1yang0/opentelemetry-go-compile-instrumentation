@@ -129,7 +129,6 @@ func Instrument(args []string) []string {
 				storeAst(modified, ast)
 				args[i] = modified
 				break
-				// saveAstToFile("save.go", ast)
 			}
 		}
 	}
