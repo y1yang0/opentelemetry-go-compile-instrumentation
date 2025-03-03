@@ -24,6 +24,7 @@ If you want to check the result of instrumentation, go to the directory location
 cd /var/folders/x9/fddsvlt5363c0plvvw8_2mr80000gn/T/go-build2020695287
 
 ### Locate the main package under the b001 subdirectory:
+```bash
 ls -l b001
 
 ### Inspect files:
