@@ -1,6 +1,6 @@
 module github.com/open-telemetry/opentelemetry-go-compile-instrumentation/demo
 
-go 1.22.0
+go 1.23.0
 
 replace github.com/open-telemetry/opentelemetry-go-compile-instrumentation/sdk => ../sdk
 

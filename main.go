@@ -25,13 +25,21 @@ func runCmd(args ...string) error {
 }
 
 func isCompilePackage(args []string, pkg string) bool {
-	checks := []string{"compile", "-buildid", "-p " + pkg}
-	for _, check := range checks {
-		if !strings.Contains(strings.Join(args, " "), check) {
-			return false
+	if len(args) < 2 {
+		return false
+	}
+	if !strings.HasSuffix(args[0], "compile") &&
+		!strings.HasSuffix(args[0], "compile.exe") {
+		return false
+	}
+	for i, arg := range args[1:] {
+		if arg == "-p" {
+			if i+1 < len(args) && args[i+2] == pkg {
+				return true
+			}
 		}
 	}
-	return true
+	return false
 }
 
 func main() {
