@@ -1,4 +1,10 @@
-# Principles
+# Introduction
+This proposal outlines a method for injecting runtime hooks into target functions in Go programs, enabling dynamic monitoring and modification of function behavior. The approach leverages trampoline code injection and function pointer redirection to seamlessly integrate monitoring logic without requiring significant changes to the user's codebase.
+
+The goal is to provide a flexible and non-intrusive mechanism for instrumenting Go applications, particularly for use cases such as observability (e.g., OpenTelemetry), debugging, or performance profiling.
+
+# Core Principles
+## 1. Trampoline Code Injection
 We inject trampoline code into the Target (lib-side) function, which ultimately jumps to the actual monitoring code via the function pointer Hook.
 
 ```go
@@ -15,8 +21,12 @@ func Trampoline() {
 var Hook func()
 ```
 
+## 2. Linkage via golinkname
+The `Hook` function is linked to the monitoring code using the `//go:linkname` directive. This allows us to dynamically associate the hook with the target function at compile time.
+
 # Implementation Details
-First, we add new dependencies to the user's project by creating or modifying files. For example:
+## 1. Adding Dependencies
+To enable the instrumentation, we first add the necessary dependencies to the user's project. This can be done by creating or modifying files. For example:
 
 ```go
 // otel_importer.go
@@ -27,13 +37,23 @@ import _ "github.com/open-telemetry/opentelemetry-go-compile-instrumentation/sdk
 
 The user's project successfully imports our SDK, which contains the hook code. This makes it possible to link the target function and the hook code via golinkname.
 
+## 2. Updating `go.mod`
 Next, execute `go mod tidy` to properly update the go.mod file.
 
-Finally, we invoke `go build -toolexec=otel` to perform the actual build. Our tool intercepts the compilation commands of interest, locates the files containing the target code, and modifies them by injecting trampoline code into the AST as described above. The Hook variable is then linked to the hook code via golinkname.
+## 3. Building with instrumentation
+Finally, invoke the build process with a custom toolchain:
+
+```bash
+go build -toolexec=otel
+```
+
+The `-toolexec=otel` flag specifies a custom tool (e.g., otel) that intercepts compilation commands. We find the target function from compilation commands and inject trampoline code into the AST. Since the hook dependency is already imported, we can link the target function to the hook code via golinkname without any other modifications.
 
 # Interface Design
-The design of the MyHook function is an important topic. Some basic requirements include the ability to retrieve the parameters, return values, and function name of the target function (e.g., Target in the example above) within the MyHook function. An example interface might look like this:
+## 1. Context
+The Context interface is designed to provide a structured way to access and manipulate the parameters, return values, and other relevant data of the target function. This allows the hook code to interact with the target function's execution context seamlessly.
 
+Example:
 ```go
 func MyHook(ctx Context) {
 	ctx.GetFuncName()
@@ -43,10 +63,9 @@ func MyHook(ctx Context) {
 	ctx.SetReturnValue(1, "new value")
 }
 ```
-All our hook code accepts a Context, through which we can access and modify the data of the target function.
 
-The full API included in Context is as follows:
-
+## 2. Full Context API
+The full context API is listed below.
 ```go
 type Context interface {
 	// Skip the original function call
