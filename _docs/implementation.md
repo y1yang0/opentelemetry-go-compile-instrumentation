@@ -67,17 +67,22 @@ The Context interface is designed to provide a structured way to access and mani
 
 Example:
 ```go
-func MyHook(ctx Context) {
+func MyHookBefore(ctx Context) {
 	ctx.GetFuncName()
 	ctx.GetParam(1)
 	ctx.SetParam(1, "new value")
 	ctx.GetReturnValue(1)	
 	ctx.SetReturnValue(1, "new value")
+	ctx.SetData("msg", "hello world")
+}
+func MyHookAfter(ctx Context) {
+	msg := ctx.GetData("msg")
 }
 ```
 
 ## 2. Full Context API
 The full context API is listed below.
+
 ```go
 type Context interface {
 	// Skip the original function call
