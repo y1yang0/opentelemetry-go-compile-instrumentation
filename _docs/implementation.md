@@ -115,7 +115,7 @@ type Context interface {
 ```
 
 Key Features:
-- Parameter Access and Modification: Allows inspection and alteration of function arguments.
+- Parameter Access and Modification: Allows for the inspection and modification of function arguments.
 - Return Value Manipulation: Enables modification of return values before they are passed back to the caller.
 - Flow Control: Provides the ability to skip the original function call entirely (SetSkipCall).
 - State Management: Facilitates communication between the OnEnter and OnExit phases of the hook.
