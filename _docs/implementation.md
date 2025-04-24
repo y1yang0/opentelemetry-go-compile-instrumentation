@@ -58,7 +58,7 @@ The build process is invoked with a custom toolchain by specifying the `-toolexe
 go build -toolexec=otel
 ```
 
-The `-toolexec=otel` flag specifies a custom tool (e.g., otel) that intercepts compilation commands. We find the target function from compilation commands and inject trampoline code into the AST of these functions. Since the hook dependency was already imported in Phase 1, we can link the target function to the hook code via golinkname without any other modifications.
+The `-toolexec=otel` flag specifies a custom tool (e.g., otel) that intercepts compilation commands. The tool identifies the target function from the compilation commands and injects trampoline code into the AST of these functions. Since the hook dependency was already imported in Phase 1, the tool can link the target function to the hook code via //go:linkname without requiring any additional modifications.
 
 
 # Interface Design
