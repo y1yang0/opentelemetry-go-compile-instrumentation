@@ -5,7 +5,7 @@ The goal is to provide a flexible and non-intrusive mechanism for instrumenting 
 
 # Core Principles
 ## 1. Trampoline Code Injection
-We inject trampoline function call into the Target (lib-side) function, which ultimately jumps to the actual hook code via the function pointer Hook.
+Trampoline function calls are injected into the Target (lib-side) function, which ultimately jumps to the actual hook code via the function pointer Hook.
 
 ```go
 func Target() {
@@ -35,7 +35,7 @@ The `Hook` function is linked to the monitoring code using the `//go:linkname` d
 Go compile-time instrumentation is a two-phase process: the first phase involves updating dependencies, and the second phase focuses on building the project using a custom toolchain.
 
 ## Phase 1: Adding Dependencies
-To prepare the project for instrumentation, we first integrate the necessary dependencies into the user's codebase. This step ensures that the required hook code is available during the build process.
+To prepare the project for instrumentation, necessary dependencies are integrated into the user's codebase. This step ensures that the required hook code is available during the build process.
 
 This can be done by creating or modifying files. For example:
 
@@ -48,7 +48,7 @@ import _ "github.com/open-telemetry/opentelemetry-go-compile-instrumentation/sdk
 
 This import statement ensures that the SDK, which contains the hook code, is included in the project. The `_` prefix indicates that the package is imported only for its side effects (e.g., registration of hooks).
 
-After adding the dependency, we run `go mod tidy` to update the `go.mod` file. This step ensures that the dependency is properly recorded and downloaded into the module cache.
+After adding the dependency, `go mod tidy` is run to update the `go.mod` file. This step ensures that the dependency is properly recorded and downloaded into the module cache.
 By completing this phase, the project is now ready for the next step, where the instrumentation logic will be applied during the build process.
 
 ## Phase 2: Building with Instrumentation
@@ -71,7 +71,7 @@ func MyHookBefore(ctx Context) {
 	ctx.GetFuncName()
 	ctx.GetParam(1)
 	ctx.SetParam(1, "new value")
-	ctx.GetReturnValue(1)	
+	ctx.GetReturnValue(1)
 	ctx.SetReturnValue(1, "new value")
 	ctx.SetData("msg", "hello world")
 }
