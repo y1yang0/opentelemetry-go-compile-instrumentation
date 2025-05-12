@@ -57,27 +57,39 @@ function at compile time.
 # Implementation Details
 
 Go compile-time instrumentation is a two-phase process: the first phase involves
-updating dependencies, and the second phase focuses on building the project using
+setup dependencies, and the second phase focuses on building the project using
 a custom toolchain.
 
-## Phase 1: Adding Dependencies
+## Phase 1: Setup Dependencies
 
-To prepare the project for instrumentation, necessary dependencies are integrated
-into the user's codebase. This step ensures that the required hook code is available
-during the build process.
+### 1.1 Dependency Analysis
+The first step is to analyze the project's dependencies by collecting the list 
+of modules involved in the build. This is done using the `go build -n` command, 
+which prints the build plan without executing it.
 
-This can be done by creating or modifying files. For example:
+```command
+$ go build -n > build_plan.txt
+```
+
+From the build_plan.txt file, the tool extracts all third-party module paths 
+(e.g., `github.com/go-redis/redis`, `github.com/gin-gonic/gin`).
+
+## 1.2 Add Dependencies
+Once the third-party dependencies are identified, the tool generates a file 
+(e.g., otel_import.go) to import the SDK and corresponding hook packages for each 
+dependency:
 
 ```go
 // otel_importer.go
 package main
 
+// Import the SDK for shared utilities
 import _ "github.com/open-telemetry/opentelemetry-go-compile-instrumentation/sdk"
-```
 
-This import statement ensures that the SDK, which contains the hook code, is
-included in the project. The `_` prefix indicates that the package is imported
-only for its side effects (e.g., registration of hooks).
+// Import hooks for specific third-party libraries
+import _ "github.com/open-telemetry/opentelemetry-go-compile-instrumentation/sdk/hook/redis"
+import _ "github.com/open-telemetry/opentelemetry-go-compile-instrumentation/sdk/hook/gin"
+```
 
 After adding the dependency, `go mod tidy` is run to update the `go.mod` file.
 This step ensures that the dependency is properly recorded and downloaded into
