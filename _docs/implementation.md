@@ -8,7 +8,7 @@ the user's codebase.
 
 The goal is to provide a flexible and non-intrusive mechanism for instrumenting
 Go applications, particularly for use cases such as observability (e.g., OpenTelemetry),
-debugging, or performance profiling.
+debugging, security or performance profiling.
 
 # Core Principles
 
@@ -99,18 +99,18 @@ instrumentation logic will be applied during the build process.
 
 ## Phase 2: Building with Instrumentation
 
-The build process is invoked with a custom toolchain by specifying the `-toolexec=otel` flag
+The build process can be integrated with custom toolchains in the following ways:
 
-```bash
-go build -toolexec=otel
-```
+1. Command Prefix: `otel go build` (simple but requires manual prefixing)
+2. Environment Variable: `GOFLAGS=-toolexec=otel go build` (global effect; no per-command setup)
+3. Direct flag: `go build -toolexec=otel`  (on-demand use; ideal for scripts/CI)
 
-The `-toolexec=otel` flag specifies a custom tool (e.g., otel) that intercepts
-compilation commands. The tool identifies the target function from the compilation
-commands and injects trampoline code into the AST of these functions. Since the
-hook dependency was already imported in Phase 1, the tool can link the target
-function to the hook code via //go:linkname without requiring any additional
-modifications.
+Both of these leveraging the `-toolexec` flag, which allows users to specify a
+custom tool (e.g., otel) that intercepts compilation commands. The tool identifies 
+the target function from the compilation commands and injects trampoline code
+into the AST of these functions. Since the hook dependency was already imported
+in Phase 1, the tool can link the target function to the hook code via `//go:linkname`
+without requiring any additional modifications.
 
 
 # Interface Design
