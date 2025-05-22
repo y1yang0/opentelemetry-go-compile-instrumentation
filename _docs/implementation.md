@@ -105,7 +105,7 @@ The build process can be integrated with custom toolchains in the following ways
 2. Environment Variable: `GOFLAGS=-toolexec=otel go build` (global effect; no per-command setup)
 3. Direct flag: `go build -toolexec=otel`  (on-demand use; ideal for scripts/CI)
 
-Both of these leveraging the `-toolexec` flag, which allows users to specify a
+All of these leverage the `-toolexec` flag, which allows users to specify a
 custom tool (e.g., otel) that intercepts compilation commands. The tool identifies 
 the target function from the compilation commands and injects trampoline code
 into the AST of these functions. Since the hook dependency was already imported
