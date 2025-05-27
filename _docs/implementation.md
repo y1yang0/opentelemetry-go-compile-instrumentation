@@ -75,9 +75,11 @@ From the build_plan.txt file, the tool extracts all third-party module paths
 (e.g., `github.com/go-redis/redis`, `github.com/gin-gonic/gin`).
 
 ## 1.2 Add Dependencies
-Once the third-party dependencies are identified, the tool generates a file 
-(e.g., otel_import.go) to import the SDK and corresponding hook packages for each 
-dependency:
+The hook configuration is specified by [ux-design.md](ux-design.md),
+which includes the `ImportPath` field where the target function resides. The tool 
+matches this `ImportPath` against the pre-collected third-party dependencies and
+generates a file (e.g., otel_import.go) to import the SDK and corresponding hook 
+packages for matched dependency
 
 ```go
 // otel_importer.go
