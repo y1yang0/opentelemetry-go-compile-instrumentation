@@ -104,7 +104,7 @@ instrumentation logic will be applied during the build process.
 The build process can be integrated with custom toolchains in the following ways:
 
 - Command Prefix: `otel go build` (simple but requires manual prefixing)
-2. Environment Variable: `GOFLAGS=-toolexec=otel toolexec` (global effect; no per-command setup)
+- Environment Variable: `GOFLAGS=-toolexec=otel toolexec` (global effect; no per-command setup)
 - Direct flag: `go build -toolexec=otel toolexec` (on-demand use; ideal for scripts/CI)
 
 All of these leverage the `-toolexec` flag, which allows users to specify a
