@@ -105,7 +105,7 @@ The build process can be integrated with custom toolchains in the following ways
 
 - Command Prefix: `otel go build` (simple but requires manual prefixing)
 2. Environment Variable: `GOFLAGS=-toolexec=otel toolexec` (global effect; no per-command setup)
-3. Direct flag: `go build -toolexec=otel toolexec` (on-demand use; ideal for scripts/CI)
+- Direct flag: `go build -toolexec=otel toolexec` (on-demand use; ideal for scripts/CI)
 
 All of these leverage the `-toolexec` flag, which allows users to specify a
 custom tool (e.g., otel) that intercepts compilation commands. The tool identifies 
