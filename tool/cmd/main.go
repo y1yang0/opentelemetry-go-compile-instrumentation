@@ -41,6 +41,10 @@ func buildWithToolexec(logger *slog.Logger, args []string) error {
 	return nil
 }
 
+func cleanBuildTemp() {
+	_ = os.RemoveAll(setup.OtelRuntimeFile)
+}
+
 func initLogger(phase string) (*slog.Logger, error) {
 	var writer io.Writer
 	switch phase {
@@ -119,6 +123,7 @@ func main() {
 		if err != nil {
 			panic("failed to build with toolexec: " + err.Error())
 		}
+		cleanBuildTemp()
 	default:
 		// in -toolexec - This should not be used directly, but rather
 		// 				   invoked by the go command with toolexec mode.

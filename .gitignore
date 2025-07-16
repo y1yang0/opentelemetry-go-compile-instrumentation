@@ -7,3 +7,5 @@ tmp
 .otel-build
 **/.DS_Store
 demo/demo
+
+otel.runtime.go

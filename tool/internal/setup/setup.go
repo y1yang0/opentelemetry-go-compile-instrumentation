@@ -64,7 +64,7 @@ func Setup(logger *slog.Logger) error {
 		return err
 	}
 	// Introduce additional hook code by generating otel.instrumentation.go
-	err = sp.addDeps(deps)
+	err = sp.addDeps(matched)
 	if err != nil {
 		return err
 	}

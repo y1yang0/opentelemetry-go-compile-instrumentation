@@ -5,6 +5,7 @@ package ast
 
 import (
 	"fmt"
+	"go/token"
 
 	"github.com/dave/dst"
 )
@@ -26,4 +27,16 @@ func ListFuncDecls(file string) ([]*dst.FuncDecl, error) {
 		funcDecls = append(funcDecls, funcDecl)
 	}
 	return funcDecls, nil
+}
+
+func NewImportDecl(alias, path string) *dst.GenDecl {
+	return &dst.GenDecl{
+		Tok: token.IMPORT,
+		Specs: []dst.Spec{
+			&dst.ImportSpec{
+				Name: dst.NewIdent(alias),
+				Path: &dst.BasicLit{Value: fmt.Sprintf("%q", path)},
+			},
+		},
+	}
 }
