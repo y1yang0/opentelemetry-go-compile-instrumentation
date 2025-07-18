@@ -6,6 +6,7 @@ package ast
 import (
 	"fmt"
 	"go/parser"
+	"go/printer"
 	"go/token"
 	"os"
 	"path/filepath"
@@ -49,4 +50,24 @@ func (ap *AstParser) ParseFile(filePath string, mode parser.Mode) (*dst.File, er
 
 func (ap *AstParser) ParseFileFast(filePath string) (*dst.File, error) {
 	return ap.ParseFile(filePath, parser.SkipObjectResolution)
+}
+
+func WriteFile(filePath string, root *dst.File) error {
+	file, err := os.Create(filePath)
+	if err != nil {
+		return fmt.Errorf("failed to create file %s: %w", filePath, err)
+	}
+	defer file.Close()
+	fset := token.NewFileSet()
+	restorer := decorator.NewRestorer()
+	astFile, err := restorer.RestoreFile(root)
+	if err != nil {
+		return fmt.Errorf("failed to restore file %s: %w", filePath, err)
+	}
+	cfg := printer.Config{}
+	err = cfg.Fprint(file, fset, astFile)
+	if err != nil {
+		return fmt.Errorf("failed to write to file %s: %w", filePath, err)
+	}
+	return nil
 }
