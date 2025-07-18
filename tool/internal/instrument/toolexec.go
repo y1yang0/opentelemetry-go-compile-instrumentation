@@ -10,12 +10,12 @@ import (
 	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/util"
 )
 
-type InstrumentPreprocessor struct {
+type InstrumentPhase struct {
 	logger *slog.Logger
 }
 
 func Toolexec(logger *slog.Logger, args []string) error {
-	ip := &InstrumentPreprocessor{
+	ip := &InstrumentPhase{
 		logger: logger,
 	}
 	// Load matched hook rules from setup phase
@@ -36,7 +36,7 @@ func Toolexec(logger *slog.Logger, args []string) error {
 	// Otherwise, just run the command as is
 	err = util.RunCmd(args...)
 	if err != nil {
-		return fmt.Errorf("failed to run command: %w", err)
+		return fmt.Errorf("failed to run command: %w %v", err, args)
 	}
 	return nil
 }

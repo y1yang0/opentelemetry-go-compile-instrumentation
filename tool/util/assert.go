@@ -3,6 +3,8 @@
 
 package util
 
+import "fmt"
+
 func Assert(condition bool, message string) {
 	if !condition {
 		panic("Assertion failed: " + message)
@@ -11,4 +13,8 @@ func Assert(condition bool, message string) {
 
 func ShouldNotReachHere() {
 	panic("should not reach here")
+}
+
+func Fatal(format string, args ...any) {
+	panic("Fatal error: " + fmt.Sprintf(format, args...))
 }

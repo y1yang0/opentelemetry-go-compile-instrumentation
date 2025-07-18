@@ -39,7 +39,7 @@ func buildOtelRuntimeAst(decls []dst.Decl) *dst.File {
 	}
 }
 
-func (*SetupProcessor) addDeps(matched []*rule.InstRule) error {
+func (*SetupPhase) addDeps(matched []*rule.InstRule) error {
 	// Generate all kinds of declarations
 	importDecls := genImportDecl(matched)
 	// Build the ast

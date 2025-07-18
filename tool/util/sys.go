@@ -10,6 +10,10 @@ import (
 	"runtime"
 )
 
+const (
+	OtelRoot = "github.com/open-telemetry/opentelemetry-go-compile-instrumentation"
+)
+
 func RunCmd(args ...string) error {
 	path := args[0]
 	args = args[1:]
@@ -19,7 +23,7 @@ func RunCmd(args ...string) error {
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()
 	if err != nil {
-		return fmt.Errorf("failed to run command %s: %w", path, err)
+		return fmt.Errorf("failed to run command %s: %w %v", path, err, args)
 	}
 	return nil
 }

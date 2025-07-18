@@ -20,6 +20,7 @@ const (
 	ActionSetup      = "setup"
 	ActionGo         = "go"
 	ActionIntoolexec = "toolexec"
+	ActionVersion    = "version"
 )
 
 func buildWithToolexec(logger *slog.Logger, args []string) error {
@@ -36,7 +37,7 @@ func buildWithToolexec(logger *slog.Logger, args []string) error {
 	logger.Info("Running go build with toolexec", "args", newArgs)
 	err = util.RunCmd(newArgs...)
 	if err != nil {
-		return fmt.Errorf("failed to run command: %w", err)
+		return fmt.Errorf("failed to run command: %w %v", err, newArgs)
 	}
 	return nil
 }
@@ -91,6 +92,10 @@ func initLogger(phase string) (*slog.Logger, error) {
 func main() {
 	if len(os.Args) < 2 { //nolint:mnd // number of args
 		println("Usage: otel <action> <args...>")
+		println("Actions:")
+		println("  setup - Set up the environment for instrumentation.")
+		println("  go - Invoke the go command with toolexec mode.")
+		println("  version - Print the version of the tool.")
 		os.Exit(1)
 	}
 	action := os.Args[1]
@@ -110,11 +115,15 @@ func main() {
 	case ActionGo:
 		// otel go build - Invoke the go command with toolexec mode. If the setup
 		// 				   is not done, it will run the setup command first.
+		defer cleanBuildTemp()
+		bakup := []string{"go.mod", "go.sum", "go.work", "go.work.sum"}
+		util.BackupFile(bakup)
+		defer util.RestoreFile(bakup)
+
 		logger, err := initLogger(ActionGo)
 		if err != nil {
 			panic("failed to initialize logger: " + err.Error())
 		}
-
 		err = setup.Setup(logger)
 		if err != nil {
 			panic("failed to setup: " + err.Error())
@@ -123,7 +132,10 @@ func main() {
 		if err != nil {
 			panic("failed to build with toolexec: " + err.Error())
 		}
-		cleanBuildTemp()
+	case ActionVersion:
+		fmt.Printf("otel %s (%s) %s\n", Version, CommitHash, BuildTime)
+	case ActionIntoolexec:
+		util.Fatal("It should not be used directly")
 	default:
 		// in -toolexec - This should not be used directly, but rather
 		// 				   invoked by the go command with toolexec mode.
