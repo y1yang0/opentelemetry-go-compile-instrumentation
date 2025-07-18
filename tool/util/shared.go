@@ -53,7 +53,7 @@ func BackupFile(names []string) {
 	for _, name := range names {
 		src := name
 		dst := filepath.Join(GetBuildTemp("backup"), name)
-		_ = copyFile(src, dst)
+		_ = CopyFile(src, dst)
 	}
 }
 
@@ -63,6 +63,6 @@ func RestoreFile(names []string) {
 	for _, name := range names {
 		src := filepath.Join(GetBuildTemp("backup"), name)
 		dst := name
-		_ = copyFile(src, dst)
+		_ = CopyFile(src, dst)
 	}
 }
