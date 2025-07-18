@@ -50,7 +50,7 @@ func fetchFrames(err error, cnt int) string {
 func Error(previousErr error) error {
 	e := &stackfulError{
 		message: previousErr.Error(),
-		frame:   currentFrame(3), // skip the Errorf caller
+		frame:   currentFrame(3), //nolint:mnd // skip the Errorf caller
 		wrapped: previousErr,
 	}
 	return e
@@ -61,7 +61,7 @@ func Error(previousErr error) error {
 func Errorf(previousErr error, format string, args ...any) error {
 	e := &stackfulError{
 		message: fmt.Sprintf(format, args...),
-		frame:   currentFrame(3), // skip the Errorf caller
+		frame:   currentFrame(3), //nolint:mnd // skip the Errorf caller
 		wrapped: previousErr,
 	}
 	return e
@@ -75,7 +75,7 @@ func Fatal(err error) {
 	}
 	err = &stackfulError{
 		message: err.Error(),
-		frame:   currentFrame(3), // skip the Fatal caller
+		frame:   currentFrame(3), //nolint:mnd // skip the Fatal caller
 		wrapped: err,
 	}
 	e := &stackfulError{}
