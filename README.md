@@ -21,15 +21,15 @@ $ make build
 $ make demo
 ```
 
-## Project Structure
-
-See the [project structure](./docs/api-design-and-project-structure.md).
-
 ## Contributing
 
-See the [contributing documentation](CONTRIBUTING.md).
+See the [contributing documentation](CONTRIBUTING.md) for general contribution guidelines.
+
+See the [developing documentation](./docs/developing.md) for tool development.
 
 For the code of conduct, please refer to our [OpenTelemetry Community Code of Conduct](https://github.com/open-telemetry/community/blob/main/code-of-conduct.md)
+
+## License
 
 ## License
 

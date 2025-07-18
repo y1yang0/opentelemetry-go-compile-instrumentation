@@ -4,11 +4,11 @@
 package setup
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/ex"
 	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/internal/rule"
 	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/util"
 	"golang.org/x/mod/modfile"
@@ -17,11 +17,11 @@ import (
 func parseGoMod(gomod string) (*modfile.File, error) {
 	data, err := os.ReadFile(gomod)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read go.mod file: %w", err)
+		return nil, ex.Error(err)
 	}
 	modFile, err := modfile.Parse(gomod, data, nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse go.mod file: %w", err)
+		return nil, ex.Error(err)
 	}
 	return modFile, nil
 }
@@ -29,11 +29,11 @@ func parseGoMod(gomod string) (*modfile.File, error) {
 func writeGoMod(gomod string, modfile *modfile.File) error {
 	data, err := modfile.Format()
 	if err != nil {
-		return fmt.Errorf("failed to format go.mod file: %w", err)
+		return ex.Error(err)
 	}
 	err = os.WriteFile(gomod, data, 0o644) //nolint:gosec // 0644 is ok
 	if err != nil {
-		return fmt.Errorf("failed to write go.mod file: %w", err)
+		return ex.Error(err)
 	}
 	return nil
 }
@@ -41,7 +41,7 @@ func writeGoMod(gomod string, modfile *modfile.File) error {
 func runModTidy() error {
 	err := util.RunCmd("go", "mod", "tidy")
 	if err != nil {
-		return fmt.Errorf("failed to run go mod tidy: %w", err)
+		return ex.Error(err)
 	}
 	return nil
 }
@@ -57,7 +57,7 @@ func addReplace(modfile *modfile.File, path, version, rpath, rversion string) (b
 	if !hasReplace {
 		err := modfile.AddReplace(path, version, rpath, rversion)
 		if err != nil {
-			return false, fmt.Errorf("failed to add replace directive: %w", err)
+			return false, ex.Error(err)
 		}
 		return true, nil
 	}
@@ -94,16 +94,16 @@ func (sp *SetupPhase) syncDeps(matched []*rule.InstRule) error {
 	pkgPath := util.OtelRoot + "/pkg"
 	err = modfile.AddReplace(pkgPath, "", "../pkg", "")
 	if err != nil {
-		return fmt.Errorf("failed to add replace directive for pkg module: %w", err)
+		return ex.Error(err)
 	}
 	if changed {
 		err = writeGoMod("go.mod", modfile)
 		if err != nil {
-			return fmt.Errorf("failed to write go.mod file: %w", err)
+			return ex.Error(err)
 		}
 		err = runModTidy()
 		if err != nil {
-			return fmt.Errorf("failed to run go mod tidy: %w", err)
+			return ex.Error(err)
 		}
 		sp.recordModified("go.mod")
 	}

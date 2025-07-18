@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/ex"
 	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/internal/rule"
 	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/util"
 )
@@ -35,13 +36,13 @@ func (*SetupPhase) store(matched []*rule.InstRule) error {
 	f := util.GetBuildTemp("matched.txt")
 	file, err := os.Create(f)
 	if err != nil {
-		return fmt.Errorf("failed to create file %s: %w", f, err)
+		return ex.Errorf(err, "failed to create file %s", f)
 	}
 	defer file.Close()
 	for _, r := range matched {
 		_, err = fmt.Fprintf(file, "%s\n", r.Name)
 		if err != nil {
-			return fmt.Errorf("failed to write to file %s: %w", f, err)
+			return ex.Errorf(err, "failed to write to file %s", f)
 		}
 	}
 	return nil

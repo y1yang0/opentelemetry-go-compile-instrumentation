@@ -4,9 +4,9 @@
 package instrument
 
 import (
-	"fmt"
 	"log/slog"
 
+	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/ex"
 	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/util"
 )
 
@@ -36,7 +36,7 @@ func Toolexec(logger *slog.Logger, args []string) error {
 	// Otherwise, just run the command as is
 	err = util.RunCmd(args...)
 	if err != nil {
-		return fmt.Errorf("failed to run command: %w %v", err, args)
+		return ex.Errorf(err, "failed to run command: %v", args)
 	}
 	return nil
 }
