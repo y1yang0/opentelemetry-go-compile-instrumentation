@@ -67,7 +67,7 @@ func addReplace(modfile *modfile.File, path, version, rpath, rversion string) (b
 func (sp *SetupPhase) syncDeps(matched []*rule.InstRule) error {
 	modfile, err := parseGoMod("go.mod")
 	if err != nil {
-		return err
+		return ex.Error(err)
 	}
 	changed := false
 	// Add matched dependencies to go.mod
@@ -81,7 +81,7 @@ func (sp *SetupPhase) syncDeps(matched []*rule.InstRule) error {
 		replacePath = filepath.Join("..", replacePath)
 		changed, err = addReplace(modfile, m.Path, "", replacePath, "")
 		if err != nil {
-			return err
+			return ex.Error(err)
 		}
 		if changed {
 			sp.Info("Synced dependency", "dep", m.String())

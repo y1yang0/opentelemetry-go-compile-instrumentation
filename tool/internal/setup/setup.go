@@ -67,27 +67,27 @@ func Setup(logger *slog.Logger) error {
 	// Find all dependencies of the project being build
 	deps, err := sp.findDeps(os.Args[1:])
 	if err != nil {
-		return err
+		return ex.Error(err)
 	}
 	// Match the hook code with these dependencies
 	matched, err := sp.matchedDeps(deps)
 	if err != nil {
-		return err
+		return ex.Error(err)
 	}
 	// Introduce additional hook code by generating otel.instrumentation.go
 	err = sp.addDeps(matched)
 	if err != nil {
-		return err
+		return ex.Error(err)
 	}
 	// Sync new dependencies to go.mod or vendor/modules.txt
 	err = sp.syncDeps(matched)
 	if err != nil {
-		return err
+		return ex.Error(err)
 	}
 	// Write the matched hook to matched.txt for further instrument phase
 	err = sp.store(matched)
 	if err != nil {
-		return err
+		return ex.Error(err)
 	}
 	sp.Info("Setup completed successfully")
 	return nil

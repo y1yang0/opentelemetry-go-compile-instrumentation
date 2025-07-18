@@ -21,7 +21,7 @@ func Toolexec(logger *slog.Logger, args []string) error {
 	// Load matched hook rules from setup phase
 	err := ip.load()
 	if err != nil {
-		return err
+		return ex.Error(err)
 	}
 	// Check if the current package should be instrumented by matching the current
 	// command with list of matched rules
@@ -29,7 +29,7 @@ func Toolexec(logger *slog.Logger, args []string) error {
 		// Okay, this package should be instrumented.
 		err = ip.instrument(args)
 		if err != nil {
-			return err
+			return ex.Error(err)
 		}
 		return nil
 	}
