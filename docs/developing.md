@@ -9,11 +9,11 @@ See the [project structure](./api-design-and-project-structure.md).
 Any error should be wrapped with `ex.Error` or `ex.Errorf` to include the stack trace.
 
 ```go
-return ex.Error(err)
+ex.Error(err)
 ```
 
 ```go
-return ex.Errorf(err, "additional context %s", "some value")
+ex.Errorf(err, "additional context %s", "some value")
 ```
 
 Exit the program with `ex.Fatal` or `ex.Fatalf`.
