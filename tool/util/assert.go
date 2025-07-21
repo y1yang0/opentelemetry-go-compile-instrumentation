@@ -18,3 +18,7 @@ func ShouldNotReachHere() {
 func Fatal(format string, args ...any) {
 	panic("Fatal error: " + fmt.Sprintf(format, args...))
 }
+
+func Unimplemented() {
+	panic("Unimplemented yet")
+}

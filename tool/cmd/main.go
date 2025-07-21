@@ -133,7 +133,7 @@ func main() {
 			panic("failed to build with toolexec: " + err.Error())
 		}
 	case ActionVersion:
-		fmt.Printf("otel %s (%s) %s\n", Version, CommitHash, BuildTime)
+		util.Unimplemented()
 	case ActionIntoolexec:
 		util.Fatal("It should not be used directly")
 	default:
