@@ -5,13 +5,11 @@ package util
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
-)
-
-const (
-	OtelRoot = "github.com/open-telemetry/opentelemetry-go-compile-instrumentation"
 )
 
 func RunCmd(args ...string) error {
@@ -34,4 +32,32 @@ func IsWindows() bool {
 
 func IsUnix() bool {
 	return runtime.GOOS == "linux" || runtime.GOOS == "darwin"
+}
+
+func CopyFile(src, dst string) error {
+	_, err := os.Stat(filepath.Dir(dst))
+	if os.IsNotExist(err) {
+		err = os.MkdirAll(filepath.Dir(dst), 0o755)
+		if err != nil {
+			return fmt.Errorf("failed to create backup directory: %w", err)
+		}
+	}
+
+	srcFile, err := os.Open(src)
+	if err != nil {
+		return fmt.Errorf("failed to open source file: %w", err)
+	}
+	defer srcFile.Close()
+
+	dstFile, err := os.Create(dst)
+	if err != nil {
+		return fmt.Errorf("failed to create backup file: %w", err)
+	}
+	defer dstFile.Close()
+
+	_, err = io.Copy(dstFile, srcFile)
+	if err != nil {
+		return fmt.Errorf("failed to copy file: %w", err)
+	}
+	return nil
 }
