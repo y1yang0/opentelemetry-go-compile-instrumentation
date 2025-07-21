@@ -20,7 +20,6 @@ const (
 	ActionSetup      = "setup"
 	ActionGo         = "go"
 	ActionIntoolexec = "toolexec"
-	ActionVersion    = "version"
 )
 
 func buildWithToolexec(logger *slog.Logger, args []string) error {
@@ -95,7 +94,6 @@ func main() {
 		println("Actions:")
 		println("  setup - Set up the environment for instrumentation.")
 		println("  go - Invoke the go command with toolexec mode.")
-		println("  version - Print the version of the tool.")
 		os.Exit(1)
 	}
 	action := os.Args[1]
@@ -132,8 +130,6 @@ func main() {
 		if err != nil {
 			panic("failed to build with toolexec: " + err.Error())
 		}
-	case ActionVersion:
-		util.Unimplemented()
 	case ActionIntoolexec:
 		util.Fatal("It should not be used directly")
 	default:
