@@ -98,7 +98,6 @@ func main() {
 	switch action {
 	case ActionVersion:
 		fmt.Printf("otel version %s_%s_%s\n", Version, CommitHash, BuildTime)
-		os.Exit(0)
 	case ActionSetup:
 		// otel setup - This command is used to set up the environment for
 		// 			    instrumentation. It should be run before other commands.
