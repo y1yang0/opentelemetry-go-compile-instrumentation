@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/ex"
 	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/internal/rule"
 	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/util"
 )
@@ -25,13 +26,13 @@ func (*SetupProcessor) store(matched []*rule.InstRule) error {
 	f := util.GetBuildTemp("matched.txt")
 	file, err := os.Create(f)
 	if err != nil {
-		return fmt.Errorf("failed to create file %s: %w", f, err)
+		return ex.Errorf(err, "failed to create file %s", f)
 	}
 	defer file.Close()
 	for _, r := range matched {
 		_, err = fmt.Fprintf(file, "%s\n", r.Name)
 		if err != nil {
-			return fmt.Errorf("failed to write to file %s: %w", f, err)
+			return ex.Errorf(err, "failed to write to file %s", f)
 		}
 	}
 	return nil
@@ -56,27 +57,27 @@ func Setup(logger *slog.Logger) error {
 	// Find all dependencies of the project being build
 	deps, err := sp.findDeps(os.Args[1:])
 	if err != nil {
-		return err
+		return ex.Error(err)
 	}
 	// Match the hook code with these dependencies
 	matched, err := sp.matchedDeps(deps)
 	if err != nil {
-		return err
+		return ex.Error(err)
 	}
 	// Introduce additional hook code by generating otel.instrumentation.go
 	err = sp.addDeps(matched)
 	if err != nil {
-		return err
+		return ex.Error(err)
 	}
 	// Run `go mod tidy` to refresh dependencies
 	err = sp.refreshDeps()
 	if err != nil {
-		return err
+		return ex.Error(err)
 	}
 	// Write the matched hook to matched.txt for further instrument phase
 	err = sp.store(matched)
 	if err != nil {
-		return err
+		return ex.Error(err)
 	}
 	sp.Info("Setup completed successfully")
 	return nil
