@@ -34,6 +34,6 @@ ex.Fatal(err)
 ```
 
 ```go
-// Exit the program with an error and a additional message
+// Exit the program with an error and an additional message
 ex.Fatalf("additional context %s", "some value")
 ```
