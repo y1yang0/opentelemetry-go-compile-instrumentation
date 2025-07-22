@@ -22,7 +22,7 @@ return ex.Errorf(err, "additional context %s", "some value")
 ```
 
 ```go
-// Create a new error with a additional message
+// Create a new error with an additional message
 return ex.Errorf(nil, "additional context %s", "some value")
 ```
 
