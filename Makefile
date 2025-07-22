@@ -19,9 +19,9 @@ all: build
 .PHONY: build
 build:
 	@echo "Building instrumentation tool..."
-	@echo "otel version $(VERSION)_$(COMMIT_HASH)_$(BUILD_TIME)"
 	@go mod tidy
 	@go build -a -ldflags "-X main.Version=$(VERSION) -X main.CommitHash=$(COMMIT_HASH) -X main.BuildTime=$(BUILD_TIME)" -o $(BINARY_NAME) ./$(TOOL_DIR)
+	@./$(BINARY_NAME) version
 
 # Run the demo with instrumentation
 .PHONY: demo
