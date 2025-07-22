@@ -17,7 +17,7 @@ return ex.Error(err)
 ```
 
 ```go
-// Wrap an existing error with additional message and return to the caller
+// Wrap the existing error with an additional message and return it to the caller.
 return ex.Errorf(err, "additional context %s", "some value")
 ```
 
