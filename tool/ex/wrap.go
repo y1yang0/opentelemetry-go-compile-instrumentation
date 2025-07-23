@@ -12,6 +12,8 @@ import (
 	"strings"
 )
 
+const numSkipFrame = 3 // skip the Errorf/Fatalf caller
+
 // stackfulError represents an error with stack trace information
 type stackfulError struct {
 	message string
@@ -50,7 +52,7 @@ func fetchFrames(err error, cnt int) string {
 func Error(previousErr error) error {
 	e := &stackfulError{
 		message: previousErr.Error(),
-		frame:   currentFrame(3), //nolint:mnd // skip the Errorf caller
+		frame:   currentFrame(numSkipFrame),
 		wrapped: previousErr,
 	}
 	return e
@@ -61,7 +63,7 @@ func Error(previousErr error) error {
 func Errorf(previousErr error, format string, args ...any) error {
 	e := &stackfulError{
 		message: fmt.Sprintf(format, args...),
-		frame:   currentFrame(3), //nolint:mnd // skip the Errorf caller
+		frame:   currentFrame(numSkipFrame),
 		wrapped: previousErr,
 	}
 	return e
@@ -75,7 +77,7 @@ func Fatal(err error) {
 	}
 	err = &stackfulError{
 		message: err.Error(),
-		frame:   currentFrame(3), //nolint:mnd // skip the Fatal caller
+		frame:   currentFrame(numSkipFrame),
 		wrapped: err,
 	}
 	e := &stackfulError{}
