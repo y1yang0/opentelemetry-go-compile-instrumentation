@@ -20,6 +20,7 @@ const (
 	ActionSetup      = "setup"
 	ActionGo         = "go"
 	ActionIntoolexec = "toolexec"
+	ActionVersion    = "version"
 )
 
 func buildWithToolexec(logger *slog.Logger, args []string) error {
@@ -95,6 +96,8 @@ func main() {
 	}
 	action := os.Args[1]
 	switch action {
+	case ActionVersion:
+		fmt.Printf("otel version %s_%s_%s\n", Version, CommitHash, BuildTime)
 	case ActionSetup:
 		// otel setup - This command is used to set up the environment for
 		// 			    instrumentation. It should be run before other commands.
