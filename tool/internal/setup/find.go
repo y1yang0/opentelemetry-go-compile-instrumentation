@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/ex"
 	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/util"
 )
 
@@ -65,7 +66,7 @@ func findCompileCommands(buildPlanLog *os.File) ([]string, error) {
 	// Seek to the beginning of the file before reading
 	_, err := buildPlanLog.Seek(0, 0)
 	if err != nil {
-		return nil, fmt.Errorf("failed to seek to beginning of build plan log: %w", err)
+		return nil, ex.Errorf(err, "failed to seek to beginning of build plan log")
 	}
 	// 10MB should be enough to accommodate most long line
 	buffer := make([]byte, 0, buildPlanBufSize)
@@ -79,7 +80,7 @@ func findCompileCommands(buildPlanLog *os.File) ([]string, error) {
 	}
 	err = scanner.Err()
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse build plan log: %w", err)
+		return nil, ex.Errorf(err, "failed to parse build plan log")
 	}
 	return compileCmds, nil
 }
@@ -109,7 +110,7 @@ func splitCompileCmds(input string) []string {
 
 		err := arg.WriteByte(c)
 		if err != nil {
-			panic(err)
+			ex.Fatal(err)
 		}
 	}
 
@@ -137,7 +138,7 @@ func (sp *SetupProcessor) listBuildPlan(goBuildCmd []string) ([]string, error) {
 	// Create a build plan log file in the temporary directory
 	buildPlanLog, err := os.Create(util.GetBuildTemp(BuildPlanLog))
 	if err != nil {
-		return nil, fmt.Errorf("failed to create build plan log file: %w", err)
+		return nil, ex.Errorf(err, "failed to create build plan log file")
 	}
 	defer buildPlanLog.Close()
 	// The full build command is: "go build/install -a -x -n  {...}"
@@ -159,7 +160,7 @@ func (sp *SetupProcessor) listBuildPlan(goBuildCmd []string) ([]string, error) {
 	cmd.Dir = ""
 	err = cmd.Run()
 	if err != nil {
-		return nil, fmt.Errorf("failed to run build plan: %w", err)
+		return nil, ex.Errorf(err, "failed to run build plan")
 	}
 
 	// Find compile commands from build plan log

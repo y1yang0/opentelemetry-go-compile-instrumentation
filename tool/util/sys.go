@@ -4,10 +4,11 @@
 package util
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 	"runtime"
+
+	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/ex"
 )
 
 func RunCmd(args ...string) error {
@@ -19,7 +20,7 @@ func RunCmd(args ...string) error {
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()
 	if err != nil {
-		return fmt.Errorf("failed to run command %s: %w", path, err)
+		return ex.Errorf(err, "failed to run command %s", path)
 	}
 	return nil
 }

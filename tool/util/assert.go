@@ -3,12 +3,14 @@
 
 package util
 
+import "github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/ex"
+
 func Assert(condition bool, message string) {
 	if !condition {
-		panic("Assertion failed: " + message)
+		ex.Fatalf("Assertion failed: %s", message)
 	}
 }
 
 func ShouldNotReachHere() {
-	panic("should not reach here")
+	ex.Fatalf("should not reach here")
 }
