@@ -4,12 +4,13 @@
 package util
 
 import (
-	"fmt"
 	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
+
+	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/ex"
 )
 
 func RunCmd(args ...string) error {
@@ -21,7 +22,7 @@ func RunCmd(args ...string) error {
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()
 	if err != nil {
-		return fmt.Errorf("failed to run command %s: %w %v", path, err, args)
+		return ex.Errorf(err, "failed to run command %s", path)
 	}
 	return nil
 }
@@ -39,25 +40,25 @@ func CopyFile(src, dst string) error {
 	if os.IsNotExist(err) {
 		err = os.MkdirAll(filepath.Dir(dst), 0o755)
 		if err != nil {
-			return fmt.Errorf("failed to create backup directory: %w", err)
+			return ex.Error(err)
 		}
 	}
 
 	srcFile, err := os.Open(src)
 	if err != nil {
-		return fmt.Errorf("failed to open source file: %w", err)
+		return ex.Error(err)
 	}
 	defer srcFile.Close()
 
 	dstFile, err := os.Create(dst)
 	if err != nil {
-		return fmt.Errorf("failed to create backup file: %w", err)
+		return ex.Error(err)
 	}
 	defer dstFile.Close()
 
 	_, err = io.Copy(dstFile, srcFile)
 	if err != nil {
-		return fmt.Errorf("failed to copy file: %w", err)
+		return ex.Error(err)
 	}
 	return nil
 }

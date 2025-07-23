@@ -3,22 +3,20 @@
 
 package util
 
-import "fmt"
+import (
+	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/ex"
+)
 
 func Assert(condition bool, message string) {
 	if !condition {
-		panic("Assertion failed: " + message)
+		ex.Fatalf("Assertion failed: %s", message)
 	}
 }
 
 func ShouldNotReachHere() {
-	panic("should not reach here")
-}
-
-func Fatal(format string, args ...any) {
-	panic("Fatal error: " + fmt.Sprintf(format, args...))
+	ex.Fatalf("should not reach here")
 }
 
 func Unimplemented() {
-	panic("Unimplemented yet")
+	ex.Fatalf("Unimplemented yet")
 }
