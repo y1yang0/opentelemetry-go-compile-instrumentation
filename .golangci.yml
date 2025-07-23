@@ -483,7 +483,7 @@ linters:
       # If this set, it will override the default set of ignored signatures.
       # See https://github.com/tomarrell/wrapcheck#configuration for more information.
       # Default: [".Errorf(", "errors.New(", "errors.Unwrap(", "errors.Join(", ".Wrap(", ".Wrapf(", ".WithMessage(", ".WithMessagef(", ".WithStack("]
-      # We use our own error handling library, so we need to ignore the default ones.
+      # We use our own error handling library (`ex`), so we override the default
       ignore-sigs:
         # - .Errorf(
         # - errors.New(
