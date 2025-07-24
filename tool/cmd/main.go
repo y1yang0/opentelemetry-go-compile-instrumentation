@@ -38,7 +38,7 @@ func buildWithToolexec(logger *slog.Logger, args []string) error {
 	logger.Info("Running go build with toolexec", "args", newArgs)
 	err = util.RunCmd(newArgs...)
 	if err != nil {
-		return ex.Errorf(err, "failed to run command")
+		return err
 	}
 	return nil
 }
@@ -72,7 +72,7 @@ func initLogger(phase string) (*slog.Logger, error) {
 	case ActionIntoolexec:
 		writer = os.Stdout
 	default:
-		return nil, ex.Errorf(nil, "invalid action: %s", phase)
+		return nil, ex.NewError("invalid action: %s", phase)
 	}
 
 	// Create a custom handler with shorter time format

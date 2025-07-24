@@ -55,19 +55,19 @@ func (ap *AstParser) ParseFileFast(filePath string) (*dst.File, error) {
 func WriteFile(filePath string, root *dst.File) error {
 	file, err := os.Create(filePath)
 	if err != nil {
-		return ex.Errorf(err, "failed to create file %s", filePath)
+		return ex.Errorf(err, "failed to write ast to file %s", filePath)
 	}
 	defer file.Close()
 	fset := token.NewFileSet()
 	restorer := decorator.NewRestorer()
 	astFile, err := restorer.RestoreFile(root)
 	if err != nil {
-		return ex.Errorf(err, "failed to restore file %s", filePath)
+		return ex.Errorf(err, "failed to write ast to file %s", filePath)
 	}
 	cfg := printer.Config{}
 	err = cfg.Fprint(file, fset, astFile)
 	if err != nil {
-		return ex.Errorf(err, "failed to write to file %s", filePath)
+		return ex.Errorf(err, "failed to write ast to file %s", filePath)
 	}
 	return nil
 }

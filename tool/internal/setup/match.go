@@ -16,12 +16,12 @@ import (
 func parseEmbeddedRule(path string) ([]*rule.InstRule, error) {
 	yamlFile, err := data.ReadEmbedFile(path)
 	if err != nil {
-		return nil, ex.Errorf(err, "failed to open yaml file")
+		return nil, err
 	}
 	rules := make(map[string]*rule.InstRule)
 	err = yaml.NewDecoder(bytes.NewReader(yamlFile)).Decode(&rules)
 	if err != nil {
-		return nil, ex.Errorf(err, "failed to decode yaml file")
+		return nil, ex.Errorf(err, "failed to decode yaml file %s", path)
 	}
 	arr := make([]*rule.InstRule, 0)
 	for name, r := range rules {
@@ -36,7 +36,7 @@ func materalizeRules(availables []string) ([]*rule.InstRule, error) {
 	for _, available := range availables {
 		rs, parseErr := parseEmbeddedRule(available)
 		if parseErr != nil {
-			return nil, ex.Errorf(parseErr, "failed to parse rule")
+			return nil, parseErr
 		}
 		parsedRules = append(parsedRules, rs...)
 	}
@@ -46,14 +46,14 @@ func materalizeRules(availables []string) ([]*rule.InstRule, error) {
 func (sp *SetupProcessor) matchedDeps(deps []*Dependency) ([]*rule.InstRule, error) {
 	availables, err := data.ListAvailableRules()
 	if err != nil {
-		return nil, ex.Errorf(err, "failed to list available rules")
+		return nil, err
 	}
 	sp.Info("Available rules", "rules", availables)
 
 	// Construct the set of default rules by parsing embedded data
 	rules, err := materalizeRules(availables)
 	if err != nil {
-		return nil, ex.Errorf(err, "failed to materialize rules")
+		return nil, err
 	}
 
 	// Match the default rules with the found dependencies
@@ -72,7 +72,7 @@ func (sp *SetupProcessor) matchedDeps(deps []*Dependency) ([]*rule.InstRule, err
 			for _, file := range dep.Sources {
 				funcDecls, parseErr := ast.ListFuncDecls(file)
 				if parseErr != nil {
-					return nil, ex.Errorf(parseErr, "failed to list func decls")
+					return nil, parseErr
 				}
 				for _, funcDecl := range funcDecls {
 					// Same function name?

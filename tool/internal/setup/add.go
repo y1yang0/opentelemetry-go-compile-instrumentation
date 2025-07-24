@@ -5,7 +5,6 @@ package setup
 
 import (
 	"github.com/dave/dst"
-	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/ex"
 	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/internal/ast"
 	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/internal/rule"
 )
@@ -47,7 +46,7 @@ func (*SetupProcessor) addDeps(matched []*rule.InstRule) error {
 	// Write the ast to file
 	err := ast.WriteFile(OtelRuntimeFile, root)
 	if err != nil {
-		return ex.Errorf(err, "failed to write ast to file %s", OtelRuntimeFile)
+		return err
 	}
 	return nil
 }
