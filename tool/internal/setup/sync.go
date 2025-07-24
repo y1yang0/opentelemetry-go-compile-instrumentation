@@ -98,7 +98,7 @@ func (sp *SetupPhase) syncDeps(matched []*rule.InstRule) error {
 		return ex.Errorf(err, "failed to add replace directive for pkg module")
 	}
 	if changed {
-		err = writeGoMod("go.mod", modfile)
+		err = writeGoMod(goModFile, modfile)
 		if err != nil {
 			return ex.Errorf(err, "failed to write go.mod file")
 		}
