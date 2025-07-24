@@ -120,7 +120,7 @@ func main() {
 		defer cleanBuildTemp()
 		bakup := []string{"go.mod", "go.sum", "go.work", "go.work.sum"}
 		util.BackupFile(backup)
-		defer util.RestoreFile(bakup)
+		defer util.RestoreFile(backup)
 
 		logger, err := initLogger(ActionGo)
 		if err != nil {
