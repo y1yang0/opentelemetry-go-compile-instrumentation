@@ -118,7 +118,7 @@ func main() {
 		// otel go build - Invoke the go command with toolexec mode. If the setup
 		// 				   is not done, it will run the setup command first.
 		defer cleanBuildTemp()
-		bakup := []string{"go.mod", "go.sum", "go.work", "go.work.sum"}
+		backup := []string{"go.mod", "go.sum", "go.work", "go.work.sum"}
 		util.BackupFile(backup)
 		defer util.RestoreFile(backup)
 
