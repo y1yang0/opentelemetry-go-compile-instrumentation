@@ -65,7 +65,8 @@ func addReplace(modfile *modfile.File, path, version, rpath, rversion string) (b
 }
 
 func (sp *SetupPhase) syncDeps(matched []*rule.InstRule) error {
-	modfile, err := parseGoMod("go.mod")
+        const goModFile = "go.mod"
+	modfile, err := parseGoMod(goModFile)
 	if err != nil {
 		return ex.Error(err)
 	}
