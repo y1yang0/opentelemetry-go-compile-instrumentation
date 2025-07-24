@@ -65,7 +65,7 @@ func addReplace(modfile *modfile.File, path, version, rpath, rversion string) (b
 }
 
 func (sp *SetupPhase) syncDeps(matched []*rule.InstRule) error {
-        const goModFile = "go.mod"
+	const goModFile = "go.mod"
 	modfile, err := parseGoMod(goModFile)
 	if err != nil {
 		return ex.Error(err)
@@ -80,10 +80,11 @@ func (sp *SetupPhase) syncDeps(matched []*rule.InstRule) error {
 		replacePath := m.Path
 		replacePath = strings.TrimPrefix(replacePath, util.OtelRoot)
 		replacePath = filepath.Join("..", replacePath)
-		changed, err = addReplace(modfile, m.Path, "", replacePath, "")
-		if err != nil {
-			return ex.Error(err)
+		added, addErr := addReplace(modfile, m.Path, "", replacePath, "")
+		if addErr != nil {
+			return ex.Error(addErr)
 		}
+		changed = changed || added
 		if changed {
 			sp.Info("Synced dependency", "dep", m.String())
 		}
@@ -92,10 +93,13 @@ func (sp *SetupPhase) syncDeps(matched []*rule.InstRule) error {
 	// replace directive to the local path. Once the pkg packages are published,
 	// we can remove this.
 	// Add special pkg module to go.mod
-	pkgPath := util.OtelRoot + "/pkg"
-	err = modfile.AddReplace(pkgPath, "", "../pkg", "")
-	if err != nil {
-		return ex.Errorf(err, "failed to add replace directive for pkg module")
+	added, addErr := addReplace(modfile, util.OtelRoot+"/pkg", "", "../pkg", "")
+	if addErr != nil {
+		return ex.Error(addErr)
+	}
+	changed = changed || added
+	if changed {
+		sp.Info("Synced dependency", "dep", "pkg")
 	}
 	if changed {
 		err = writeGoMod(goModFile, modfile)

@@ -24,6 +24,7 @@ func (sp *SetupPhase) Warn(msg string, args ...any)  { sp.logger.Warn(msg, args.
 func (sp *SetupPhase) Debug(msg string, args ...any) { sp.logger.Debug(msg, args...) }
 
 // recordModified copies the file to the build temp directory for debugging
+// Error is tolerated as it's not critical.
 func (sp *SetupPhase) recordModified(name string) {
 	dstFile := filepath.Join(util.GetBuildTemp("modified"), name)
 	err := util.CopyFile(name, dstFile)

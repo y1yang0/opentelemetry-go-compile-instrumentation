@@ -17,38 +17,22 @@ func GetBuildTemp(name string) string {
 	return filepath.Join(BuildTempDir, name)
 }
 
+func copyBackupFiles(names []string, src, dst string) {
+	for _, name := range names {
+		srcFile := filepath.Join(src, name)
+		dstFile := filepath.Join(dst, name)
+		_ = CopyFile(srcFile, dstFile)
+	}
+}
+
 // BackupFile backups the source file to $BUILD_TEMP/backup/name, error is
 // tolerated as it's not critical.
-func copyFilesHelper(names []string, srcRoot, dstRoot string) {
-	for _, name := range names {
-		src := filepath.Join(srcRoot, name)
-		dst := filepath.Join(dstRoot, name)
-		_ = CopyFile(src, dst) // Error is tolerated
-	}
-}
-
 func BackupFile(names []string) {
-	backupDir := GetBuildTemp("backup")
-	copyFilesHelper(names, "", backupDir)
-}
-
-func RestoreFile(names []string) {
-	backupDir := GetBuildTemp("backup")
-	copyFilesHelper(names, backupDir, "")
-}
-	for _, name := range names {
-		src := name
-		dst := filepath.Join(GetBuildTemp("backup"), name)
-		_ = CopyFile(src, dst)
-	}
+	copyBackupFiles(names, ".", GetBuildTemp("backup"))
 }
 
 // RestoreFile restores the source file from $BUILD_TEMP/backup/name, error is
 // tolerated as it's not critical.
 func RestoreFile(names []string) {
-	for _, name := range names {
-		src := filepath.Join(GetBuildTemp("backup"), name)
-		dst := name
-		_ = CopyFile(src, dst)
-	}
+	copyBackupFiles(names, GetBuildTemp("backup"), ".")
 }
