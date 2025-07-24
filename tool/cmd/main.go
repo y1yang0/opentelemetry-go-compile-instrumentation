@@ -119,7 +119,7 @@ func main() {
 		// 				   is not done, it will run the setup command first.
 		defer cleanBuildTemp()
 		bakup := []string{"go.mod", "go.sum", "go.work", "go.work.sum"}
-		util.BackupFile(bakup)
+		util.BackupFile(backup)
 		defer util.RestoreFile(bakup)
 
 		logger, err := initLogger(ActionGo)
