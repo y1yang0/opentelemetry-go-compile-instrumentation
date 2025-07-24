@@ -106,7 +106,7 @@ func (sp *SetupPhase) syncDeps(matched []*rule.InstRule) error {
 		if err != nil {
 			return ex.Errorf(err, "failed to run go mod tidy")
 		}
-		sp.recordModified("go.mod")
+		sp.recordModified(goModFile)
 	}
 	return nil
 }
