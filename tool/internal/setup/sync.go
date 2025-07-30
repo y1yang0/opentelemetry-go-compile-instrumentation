@@ -41,7 +41,7 @@ func writeGoMod(gomod string, modfile *modfile.File) error {
 func runModTidy() error {
 	err := util.RunCmd("go", "mod", "tidy")
 	if err != nil {
-		return ex.Errorf(err, "failed to run go mod tidy")
+		return err
 	}
 	return nil
 }
@@ -68,7 +68,7 @@ func (sp *SetupPhase) syncDeps(matched []*rule.InstRule) error {
 	const goModFile = "go.mod"
 	modfile, err := parseGoMod(goModFile)
 	if err != nil {
-		return ex.Error(err)
+		return err
 	}
 	changed := false
 	// Add matched dependencies to go.mod
@@ -82,7 +82,7 @@ func (sp *SetupPhase) syncDeps(matched []*rule.InstRule) error {
 		replacePath = filepath.Join("..", replacePath)
 		added, addErr := addReplace(modfile, m.Path, "", replacePath, "")
 		if addErr != nil {
-			return ex.Error(addErr)
+			return addErr
 		}
 		changed = changed || added
 		if changed {
@@ -95,7 +95,7 @@ func (sp *SetupPhase) syncDeps(matched []*rule.InstRule) error {
 	// Add special pkg module to go.mod
 	added, addErr := addReplace(modfile, util.OtelRoot+"/pkg", "", "../pkg", "")
 	if addErr != nil {
-		return ex.Error(addErr)
+		return addErr
 	}
 	changed = changed || added
 	if changed {
@@ -104,11 +104,11 @@ func (sp *SetupPhase) syncDeps(matched []*rule.InstRule) error {
 	if changed {
 		err = writeGoMod(goModFile, modfile)
 		if err != nil {
-			return ex.Errorf(err, "failed to write go.mod file")
+			return err
 		}
 		err = runModTidy()
 		if err != nil {
-			return ex.Errorf(err, "failed to run go mod tidy")
+			return err
 		}
 		sp.recordModified(goModFile)
 	}

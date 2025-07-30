@@ -38,7 +38,7 @@ func buildWithToolexec(logger *slog.Logger, args []string) error {
 	logger.Info("Running go build with toolexec", "args", newArgs)
 	err = util.RunCmd(newArgs...)
 	if err != nil {
-		return ex.Errorf(err, "failed to run command")
+		return err
 	}
 	return nil
 }
