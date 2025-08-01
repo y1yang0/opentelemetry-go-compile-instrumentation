@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"os"
 	"runtime"
-	"strconv"
 	"strings"
 )
 
@@ -16,43 +15,47 @@ const numSkipFrame = 3 // skip the Errorf/Fatalf caller
 
 // stackfulError represents an error with stack trace information
 type stackfulError struct {
-	message string
-	frame   string
+	message []string
+	frame   []string
 	wrapped error
 }
 
-func (e *stackfulError) Error() string { return e.message }
+func (e *stackfulError) Error() string { return strings.Join(e.message, "\n") }
 
-func currentFrame(skip int) string {
-	pc := make([]uintptr, 1)
-	n := runtime.Callers(skip, pc)
+func getFrames() []string {
+	const initFrames = 30
+	frameList := make([]string, 0)
+	pcs := make([]uintptr, initFrames)
+	n := runtime.Callers(numSkipFrame, pcs)
 	if n == 0 {
-		return ""
+		return frameList
 	}
-	pc = pc[:n]
-	frames := runtime.CallersFrames(pc)
-	frame, _ := frames.Next()
-	shortFunc := frame.Function
-	const prefix = "github.com/open-telemetry/opentelemetry-go-compile-instrumentation/"
-	shortFunc = strings.TrimPrefix(shortFunc, prefix)
-	return frame.File + ":" + strconv.Itoa(frame.Line) + " " + shortFunc
+	pcs = pcs[:n]
+	frames := runtime.CallersFrames(pcs)
+	cnt := 0
+	for {
+		frame, more := frames.Next()
+		if !more {
+			break
+		}
+		const prefix = "github.com/open-telemetry/opentelemetry-go-compile-instrumentation"
+		fnName := strings.TrimPrefix(frame.Function, prefix)
+		f := fmt.Sprintf("[%d]%s:%d %s", cnt, frame.File, frame.Line, fnName)
+		frameList = append(frameList, f)
+		cnt++
+	}
+	return frameList
 }
 
-func fetchFrames(err error, cnt int) string {
-	e := &stackfulError{}
-	if errors.As(err, &e) {
-		frame := fmt.Sprintf("[%d] %s\n", cnt, e.frame)
-		return fetchFrames(e.wrapped, cnt+1) + frame
-	}
-	return ""
-}
-
-// Error wraps an error with stack trace information
-// If you don't want to decorate the existing error, use it.
 func Error(previousErr error) error {
+	se := &stackfulError{}
+	if errors.As(previousErr, &se) {
+		se.message = append(se.message, previousErr.Error())
+		return previousErr
+	}
 	e := &stackfulError{
-		message: previousErr.Error(),
-		frame:   currentFrame(numSkipFrame),
+		message: []string{previousErr.Error()},
+		frame:   getFrames(),
 		wrapped: previousErr,
 	}
 	return e
@@ -61,9 +64,14 @@ func Error(previousErr error) error {
 // Errorf wraps an error with stack trace information and a formatted message
 // If you want to decorate the existing error, use it.
 func Errorf(previousErr error, format string, args ...any) error {
+	se := &stackfulError{}
+	if errors.As(previousErr, &se) {
+		se.message = append(se.message, fmt.Sprintf(format, args...))
+		return previousErr
+	}
 	e := &stackfulError{
-		message: fmt.Sprintf(format, args...),
-		frame:   currentFrame(numSkipFrame),
+		message: []string{fmt.Sprintf(format, args...)},
+		frame:   getFrames(),
 		wrapped: previousErr,
 	}
 	return e
@@ -75,15 +83,13 @@ func Fatal(err error) {
 	if err == nil {
 		panic("Fatal error: unknown")
 	}
-	err = &stackfulError{
-		message: err.Error(),
-		frame:   currentFrame(numSkipFrame),
-		wrapped: err,
-	}
 	e := &stackfulError{}
 	if errors.As(err, &e) {
-		frames := fetchFrames(err, 0)
-		msg := fmt.Sprintf("Error:\n%s\n\nStack:\n%s", e.message, frames)
+		em := ""
+		for i, m := range e.message {
+			em += fmt.Sprintf("[%d] %s\n", i, m)
+		}
+		msg := fmt.Sprintf("Error:\n%s\nStack:\n%s", em, strings.Join(e.frame, "\n"))
 		_, _ = fmt.Fprint(os.Stderr, msg)
 		os.Exit(1)
 	}

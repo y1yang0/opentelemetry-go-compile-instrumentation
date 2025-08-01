@@ -16,7 +16,7 @@ import (
 func parseEmbeddedRule(path string) ([]*rule.InstRule, error) {
 	yamlFile, err := data.ReadEmbedFile(path)
 	if err != nil {
-		return nil, ex.Errorf(err, "failed to open yaml file")
+		return nil, err
 	}
 	rules := make(map[string]*rule.InstRule)
 	err = yaml.NewDecoder(bytes.NewReader(yamlFile)).Decode(&rules)
@@ -34,9 +34,9 @@ func parseEmbeddedRule(path string) ([]*rule.InstRule, error) {
 func materalizeRules(availables []string) ([]*rule.InstRule, error) {
 	parsedRules := []*rule.InstRule{}
 	for _, available := range availables {
-		rs, parseErr := parseEmbeddedRule(available)
-		if parseErr != nil {
-			return nil, ex.Errorf(parseErr, "failed to parse rule")
+		rs, err := parseEmbeddedRule(available)
+		if err != nil {
+			return nil, err
 		}
 		parsedRules = append(parsedRules, rs...)
 	}
@@ -46,14 +46,14 @@ func materalizeRules(availables []string) ([]*rule.InstRule, error) {
 func (sp *SetupPhase) matchedDeps(deps []*Dependency) ([]*rule.InstRule, error) {
 	availables, err := data.ListAvailableRules()
 	if err != nil {
-		return nil, ex.Errorf(err, "failed to list available rules")
+		return nil, err
 	}
 	sp.Info("Available rules", "rules", availables)
 
 	// Construct the set of default rules by parsing embedded data
 	rules, err := materalizeRules(availables)
 	if err != nil {
-		return nil, ex.Errorf(err, "failed to materialize rules")
+		return nil, err
 	}
 
 	// Match the default rules with the found dependencies
@@ -72,7 +72,7 @@ func (sp *SetupPhase) matchedDeps(deps []*Dependency) ([]*rule.InstRule, error) 
 			for _, file := range dep.Sources {
 				funcDecls, parseErr := ast.ListFuncDecls(file)
 				if parseErr != nil {
-					return nil, ex.Errorf(parseErr, "failed to list func decls")
+					return nil, parseErr
 				}
 				for _, funcDecl := range funcDecls {
 					// Same function name?
