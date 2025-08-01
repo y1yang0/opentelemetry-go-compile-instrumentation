@@ -48,17 +48,7 @@ func getFrames() []string {
 }
 
 func Error(previousErr error) error {
-	se := &stackfulError{}
-	if errors.As(previousErr, &se) {
-		se.message = append(se.message, previousErr.Error())
-		return previousErr
-	}
-	e := &stackfulError{
-		message: []string{previousErr.Error()},
-		frame:   getFrames(),
-		wrapped: previousErr,
-	}
-	return e
+	return Errorf(previousErr, "")
 }
 
 // Errorf wraps an error with stack trace information and a formatted message
@@ -69,8 +59,13 @@ func Errorf(previousErr error, format string, args ...any) error {
 		se.message = append(se.message, fmt.Sprintf(format, args...))
 		return previousErr
 	}
+	// User defined error message + existing error message
+	errMsg := fmt.Sprintf(format, args...)
+	if previousErr != nil {
+		errMsg = fmt.Sprintf("%s: %s", errMsg, previousErr.Error())
+	}
 	e := &stackfulError{
-		message: []string{fmt.Sprintf(format, args...)},
+		message: []string{errMsg},
 		frame:   getFrames(),
 		wrapped: previousErr,
 	}

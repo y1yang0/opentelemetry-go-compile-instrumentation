@@ -12,7 +12,7 @@ import (
 //go:embed *.yaml
 var dataFs embed.FS
 
-func ListAvailableRules() ([]string, error) {
+func ListEmbedFiles() ([]string, error) {
 	rules, err := dataFs.ReadDir(".")
 	if err != nil {
 		return nil, ex.Errorf(err, "failed to read directory")

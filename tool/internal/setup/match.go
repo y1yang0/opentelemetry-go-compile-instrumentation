@@ -44,7 +44,7 @@ func materalizeRules(availables []string) ([]*rule.InstRule, error) {
 }
 
 func (sp *SetupPhase) matchedDeps(deps []*Dependency) ([]*rule.InstRule, error) {
-	availables, err := data.ListAvailableRules()
+	availables, err := data.ListEmbedFiles()
 	if err != nil {
 		return nil, err
 	}

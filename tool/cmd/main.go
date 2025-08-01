@@ -8,7 +8,6 @@ import (
 	"io"
 	"log/slog"
 	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/ex"
@@ -36,7 +35,16 @@ func buildWithToolexec(logger *slog.Logger, args []string) error {
 	newArgs = append(newArgs, insert)         // Add "-toolexec=..."
 	newArgs = append(newArgs, args[2:]...)    // Add the rest
 	logger.Info("Running go build with toolexec", "args", newArgs)
-	err = util.RunCmd(newArgs...)
+
+	// Tell the sub-process the working directory
+	wordDir, err := os.Getwd()
+	if err != nil {
+		return ex.Errorf(err, "failed to get working directory")
+	}
+	env := os.Environ()
+	env = append(env, util.EnvOtelWorkDir+"="+wordDir)
+
+	err = util.RunCmdWithEnv(env, newArgs...)
 	if err != nil {
 		return err
 	}
@@ -52,25 +60,27 @@ func initLogger(phase string) (*slog.Logger, error) {
 	switch phase {
 	case ActionSetup, ActionGo:
 		// Create .otel-build dir
-		if _, err := os.Stat(util.BuildTempDir); os.IsNotExist(err) {
+		_, err := os.Stat(util.BuildTempDir)
+		if os.IsNotExist(err) {
 			err = os.MkdirAll(util.BuildTempDir, 0o755)
 			if err != nil {
 				return nil, ex.Errorf(err, "failed to create .otel-build dir")
 			}
 		}
 		// Configure slog to write to the debug.log file
-		pwd, err := os.Getwd()
-		if err != nil {
-			return nil, ex.Errorf(err, "failed to get working directory")
-		}
-		logFile, err := os.OpenFile(filepath.Join(pwd, util.GetBuildTemp("debug.log")),
-			os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o777)
+		path := util.GetBuildTemp("debug.log")
+		logFile, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o777)
 		if err != nil {
 			return nil, ex.Errorf(err, "failed to open log file")
 		}
 		writer = logFile
 	case ActionIntoolexec:
-		writer = os.Stdout
+		path := util.GetBuildTemp("debug.log")
+		logFile, err := os.OpenFile(path, os.O_WRONLY|os.O_APPEND, 0o777)
+		if err != nil {
+			return nil, ex.Errorf(err, "failed to open log file")
+		}
+		writer = logFile
 	default:
 		return nil, ex.Errorf(nil, "invalid action: %s", phase)
 	}
@@ -94,10 +104,12 @@ func main() {
 	if len(os.Args) < 2 { //nolint:mnd // number of args
 		println("Usage: otel <action> <args...>")
 		println("Actions:")
-		println("  setup - Set up the environment for instrumentation.")
-		println("  go - Invoke the go command with toolexec mode.")
+		println("  setup    Set up the environment for instrumentation.")
+		println("  go       Invoke the go command with toolexec mode.")
+		println("  version  Print the version of the tool.")
 		os.Exit(1)
 	}
+
 	action := os.Args[1]
 	switch action {
 	case ActionVersion:

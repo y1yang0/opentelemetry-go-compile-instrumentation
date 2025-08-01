@@ -13,18 +13,23 @@ import (
 	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/ex"
 )
 
-func RunCmd(args ...string) error {
+func RunCmdWithEnv(env []string, args ...string) error {
 	path := args[0]
 	args = args[1:]
 	cmd := exec.Command(path, args...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+	cmd.Env = env
 	err := cmd.Run()
 	if err != nil {
 		return ex.Errorf(err, "failed to run command %s", path)
 	}
 	return nil
+}
+
+func RunCmd(args ...string) error {
+	return RunCmdWithEnv(nil, args...)
 }
 
 func IsWindows() bool {

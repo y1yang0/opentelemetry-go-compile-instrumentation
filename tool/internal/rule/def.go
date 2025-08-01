@@ -8,15 +8,15 @@ import (
 )
 
 type Advice struct {
-	Before string `yaml:"before"`
-	After  string `yaml:"after"`
+	Before string `json:"before" yaml:"before"`
+	After  string `json:"after"  yaml:"after"`
 }
 
 type InstRule struct {
-	Name     string   `yaml:"name,omitempty"`
-	Path     string   `yaml:"path"`
-	Pointcut string   `yaml:"pointcut"`
-	Advice   []Advice `yaml:"advice"`
+	Name     string   `json:"name,omitempty" yaml:"name,omitempty"`
+	Path     string   `json:"path"           yaml:"path"`
+	Pointcut string   `json:"pointcut"       yaml:"pointcut"`
+	Advice   []Advice `json:"advice"         yaml:"advice"`
 }
 
 func (r *InstRule) String() string {
