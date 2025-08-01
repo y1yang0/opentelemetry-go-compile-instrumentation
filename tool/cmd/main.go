@@ -23,34 +23,6 @@ const (
 	ActionVersion    = "version"
 )
 
-func buildWithToolexec(logger *slog.Logger, args []string) error {
-	// Add -toolexec=otel to the original build command and run it
-	execPath, err := os.Executable()
-	if err != nil {
-		return ex.Errorf(err, "failed to get executable path")
-	}
-	insert := "-toolexec=" + execPath
-	newArgs := make([]string, 0, len(args)+1) // Avoid in-place modification
-	newArgs = append(newArgs, args[:2]...)    // Add "go build"
-	newArgs = append(newArgs, insert)         // Add "-toolexec=..."
-	newArgs = append(newArgs, args[2:]...)    // Add the rest
-	logger.Info("Running go build with toolexec", "args", newArgs)
-
-	// Tell the sub-process the working directory
-	wordDir, err := os.Getwd()
-	if err != nil {
-		return ex.Errorf(err, "failed to get working directory")
-	}
-	env := os.Environ()
-	env = append(env, util.EnvOtelWorkDir+"="+wordDir)
-
-	err = util.RunCmdWithEnv(env, newArgs...)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func cleanBuildTemp() {
 	_ = os.RemoveAll(setup.OtelRuntimeFile)
 }
@@ -142,7 +114,7 @@ func main() {
 		if err != nil {
 			ex.Fatal(err)
 		}
-		err = buildWithToolexec(logger, os.Args[1:])
+		err = setup.BuildWithToolexec(logger, os.Args[1:])
 		if err != nil {
 			ex.Fatal(err)
 		}
