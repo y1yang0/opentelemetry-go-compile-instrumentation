@@ -11,4 +11,3 @@ hook_helloworld:
   advice:
     - before: MyHookBefore
     - after: MyHookAfter
-xx

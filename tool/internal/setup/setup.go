@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 
 	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/ex"
-	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/internal/rule"
 	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/util"
 )
 
@@ -33,29 +32,13 @@ func (sp *SetupPhase) recordModified(name string) {
 	}
 }
 
-func (*SetupPhase) store(matched []*rule.InstRule) error {
-	f := util.GetBuildTemp("matched.txt")
-	file, err := os.Create(f)
-	if err != nil {
-		return ex.Errorf(err, "failed to create file %s", f)
-	}
-	defer file.Close()
-	for _, r := range matched {
-		_, err = fmt.Fprintf(file, "%s\n", r.Name)
-		if err != nil {
-			return ex.Errorf(err, "failed to write to file %s", f)
-		}
-	}
-	return nil
-}
-
 // This function can be used to check if the setup has been completed.
 func isSetup() bool {
 	// TODO: Implement Task
 	return false
 }
 
-// This function is intended to prepare the environment for instrumentation.
+// Setup prepares the environment for further instrumentation.
 func Setup(logger *slog.Logger) error {
 	if isSetup() {
 		logger.Info("Setup has already been completed, skipping setup.")
@@ -91,5 +74,32 @@ func Setup(logger *slog.Logger) error {
 		return err
 	}
 	sp.Info("Setup completed successfully")
+	return nil
+}
+
+// BuildWithToolexec builds the project with the toolexec mode
+func BuildWithToolexec(logger *slog.Logger, args []string) error {
+	// Add -toolexec=otel to the original build command and run it
+	execPath, err := os.Executable()
+	if err != nil {
+		return ex.Errorf(err, "failed to get executable path")
+	}
+	insert := "-toolexec=" + execPath
+	newArgs := make([]string, 0, len(args)+1) // Avoid in-place modification
+	newArgs = append(newArgs, args[:2]...)    // Add "go build"
+	newArgs = append(newArgs, insert)         // Add "-toolexec=..."
+	newArgs = append(newArgs, args[2:]...)    // Add the rest
+	logger.Info("Running go build with toolexec", "args", newArgs)
+
+	// Tell the sub-process the working directory
+	env := os.Environ()
+	pwd := util.GetOtelWorkDir()
+	util.Assert(pwd != "", "invalid working directory")
+	env = append(env, fmt.Sprintf("%s=%s", util.EnvOtelWorkDir, pwd))
+
+	err = util.RunCmdWithEnv(env, newArgs...)
+	if err != nil {
+		return err
+	}
 	return nil
 }

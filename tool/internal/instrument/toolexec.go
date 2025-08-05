@@ -13,18 +13,23 @@ type InstrumentPhase struct {
 	logger *slog.Logger
 }
 
+func (ip *InstrumentPhase) Info(msg string, args ...any)  { ip.logger.Info(msg, args...) }
+func (ip *InstrumentPhase) Error(msg string, args ...any) { ip.logger.Error(msg, args...) }
+func (ip *InstrumentPhase) Warn(msg string, args ...any)  { ip.logger.Warn(msg, args...) }
+func (ip *InstrumentPhase) Debug(msg string, args ...any) { ip.logger.Debug(msg, args...) }
+
 func Toolexec(logger *slog.Logger, args []string) error {
 	ip := &InstrumentPhase{
 		logger: logger,
 	}
 	// Load matched hook rules from setup phase
-	err := ip.load()
+	rules, err := ip.load()
 	if err != nil {
 		return err
 	}
 	// Check if the current package should be instrumented by matching the current
 	// command with list of matched rules
-	if ip.match(args) {
+	if ip.match(args, rules) {
 		// Okay, this package should be instrumented.
 		err = ip.instrument(args)
 		if err != nil {

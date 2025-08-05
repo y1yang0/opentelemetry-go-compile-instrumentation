@@ -8,7 +8,6 @@ import (
 	"io"
 	"log/slog"
 	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/ex"
@@ -22,26 +21,8 @@ const (
 	ActionGo         = "go"
 	ActionIntoolexec = "toolexec"
 	ActionVersion    = "version"
+	DebugLog         = "debug.log"
 )
-
-func buildWithToolexec(logger *slog.Logger, args []string) error {
-	// Add -toolexec=otel to the original build command and run it
-	execPath, err := os.Executable()
-	if err != nil {
-		return ex.Errorf(err, "failed to get executable path")
-	}
-	insert := "-toolexec=" + execPath
-	newArgs := make([]string, 0, len(args)+1) // Avoid in-place modification
-	newArgs = append(newArgs, args[:2]...)    // Add "go build"
-	newArgs = append(newArgs, insert)         // Add "-toolexec=..."
-	newArgs = append(newArgs, args[2:]...)    // Add the rest
-	logger.Info("Running go build with toolexec", "args", newArgs)
-	err = util.RunCmd(newArgs...)
-	if err != nil {
-		return err
-	}
-	return nil
-}
 
 func cleanBuildTemp() {
 	_ = os.RemoveAll(setup.OtelRuntimeFile)
@@ -52,25 +33,27 @@ func initLogger(phase string) (*slog.Logger, error) {
 	switch phase {
 	case ActionSetup, ActionGo:
 		// Create .otel-build dir
-		if _, err := os.Stat(util.BuildTempDir); os.IsNotExist(err) {
+		_, err := os.Stat(util.BuildTempDir)
+		if os.IsNotExist(err) {
 			err = os.MkdirAll(util.BuildTempDir, 0o755)
 			if err != nil {
 				return nil, ex.Errorf(err, "failed to create .otel-build dir")
 			}
 		}
 		// Configure slog to write to the debug.log file
-		pwd, err := os.Getwd()
-		if err != nil {
-			return nil, ex.Errorf(err, "failed to get working directory")
-		}
-		logFile, err := os.OpenFile(filepath.Join(pwd, util.GetBuildTemp("debug.log")),
-			os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o777)
+		path := util.GetBuildTemp(DebugLog)
+		logFile, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o777)
 		if err != nil {
 			return nil, ex.Errorf(err, "failed to open log file")
 		}
 		writer = logFile
 	case ActionIntoolexec:
-		writer = os.Stdout
+		path := util.GetBuildTemp(DebugLog)
+		logFile, err := os.OpenFile(path, os.O_WRONLY|os.O_APPEND, 0o777)
+		if err != nil {
+			return nil, ex.Errorf(err, "failed to open log file")
+		}
+		writer = logFile
 	default:
 		return nil, ex.Errorf(nil, "invalid action: %s", phase)
 	}
@@ -94,10 +77,12 @@ func main() {
 	if len(os.Args) < 2 { //nolint:mnd // number of args
 		println("Usage: otel <action> <args...>")
 		println("Actions:")
-		println("  setup - Set up the environment for instrumentation.")
-		println("  go - Invoke the go command with toolexec mode.")
+		println("  setup    Set up the environment for instrumentation.")
+		println("  go       Invoke the go command with toolexec mode.")
+		println("  version  Print the version of the tool.")
 		os.Exit(1)
 	}
+
 	action := os.Args[1]
 	switch action {
 	case ActionVersion:
@@ -130,7 +115,7 @@ func main() {
 		if err != nil {
 			ex.Fatal(err)
 		}
-		err = buildWithToolexec(logger, os.Args[1:])
+		err = setup.BuildWithToolexec(logger, os.Args[1:])
 		if err != nil {
 			ex.Fatal(err)
 		}

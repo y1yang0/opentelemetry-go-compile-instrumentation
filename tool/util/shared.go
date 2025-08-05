@@ -4,17 +4,33 @@
 package util
 
 import (
+	"os"
 	"path/filepath"
 )
 
 const (
-	BuildTempDir = ".otel-build"
-	OtelRoot     = "github.com/open-telemetry/opentelemetry-go-compile-instrumentation"
+	EnvOtelWorkDir = "OTEL_WORK_DIR"
+	BuildTempDir   = ".otel-build"
+	OtelRoot       = "github.com/open-telemetry/opentelemetry-go-compile-instrumentation"
 )
+
+func GetMatchedRuleFile() string {
+	const matchedRuleFile = "matched.json"
+	return GetBuildTemp(matchedRuleFile)
+}
+
+func GetOtelWorkDir() string {
+	wd := os.Getenv(EnvOtelWorkDir)
+	if wd == "" {
+		wd, _ = os.Getwd()
+		return wd
+	}
+	return wd
+}
 
 // GetBuildTemp returns the path to the build temp directory $BUILD_TEMP/name
 func GetBuildTemp(name string) string {
-	return filepath.Join(BuildTempDir, name)
+	return filepath.Join(GetOtelWorkDir(), BuildTempDir, name)
 }
 
 func copyBackupFiles(names []string, src, dst string) {
