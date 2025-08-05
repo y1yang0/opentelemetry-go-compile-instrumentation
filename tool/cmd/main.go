@@ -68,6 +68,7 @@ func initLogger(phase string) (*slog.Logger, error) {
 			}
 			return a
 		},
+		Level: slog.LevelInfo,
 	})
 	logger := slog.New(handler)
 	return logger, nil
