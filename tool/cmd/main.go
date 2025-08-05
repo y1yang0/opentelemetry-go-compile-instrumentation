@@ -21,6 +21,7 @@ const (
 	ActionGo         = "go"
 	ActionIntoolexec = "toolexec"
 	ActionVersion    = "version"
+	DebugLog         = "debug.log"
 )
 
 func cleanBuildTemp() {
@@ -40,14 +41,14 @@ func initLogger(phase string) (*slog.Logger, error) {
 			}
 		}
 		// Configure slog to write to the debug.log file
-		path := util.GetBuildTemp("debug.log")
+		path := util.GetBuildTemp(DebugLog)
 		logFile, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o777)
 		if err != nil {
 			return nil, ex.Errorf(err, "failed to open log file")
 		}
 		writer = logFile
 	case ActionIntoolexec:
-		path := util.GetBuildTemp("debug.log")
+		path := util.GetBuildTemp(DebugLog)
 		logFile, err := os.OpenFile(path, os.O_WRONLY|os.O_APPEND, 0o777)
 		if err != nil {
 			return nil, ex.Errorf(err, "failed to open log file")
