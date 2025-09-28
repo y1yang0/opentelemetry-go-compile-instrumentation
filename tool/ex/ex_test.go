@@ -4,7 +4,7 @@
 package ex
 
 import (
-	"fmt"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -17,7 +17,7 @@ func TestError(t *testing.T) {
 	require.Contains(t, err.Error(), "a")
 	require.Contains(t, err.Error(), "b")
 
-	err = fmt.Errorf("c")
+	err = errors.New("c")
 	err = Wrapf(err, "d")
 	err = Wrapf(err, "e")
 	err = Wrap(Wrap(Wrap(err))) // make no sense
