@@ -12,7 +12,7 @@ import (
 )
 
 // -----------------------------------------------------------------------------
-// Extended Stackful Error Handling
+// Extended Error Handling with Stack Traces
 //
 // These APIs provide an error handling framework that allows errors to carry
 // stack trace information.
@@ -21,23 +21,33 @@ import (
 // This allows the error to be propagated up the call stack by simply returning
 // it (return err), without needing to be re-wrapped at each level.
 //
-// There are two primary ways to create the error, depending on the error's source:
+// While the simplest pattern is to return the error directly, you can also use
+// Wrap or Wrapf at any point in the call chain to add more contextual information.
+// This is useful when an intermediate function has valuable context that is not
+// available at the error's origin.
+//
+// Create and wrap an error:
 //
 // 1. To wrap an existing error from a standard or third-party library, use Wrap
 //    or Wrapf. This attaches a stack trace to the original error.
 //
 //    Example:
 //    if err := some_lib.DoSomething(); err != nil {
-//        return ex.Wrap(err, "additional context for the error")
+//        return ex.Wrapf(err, "additional context for the error")
+//    }
+//    if err := some_lib.DoSomething(); err != nil {
+//        return ex.Wrap(err)
 //    }
 //
 // 2. To create a new error from scratch, use Newf. This generates a new
 //    error with a stack trace at the point of creation.
 //
 //    Example:
-//    if id <= 0 {
-//        return ex.Newf("failed to do something")
+//    if unexpected {
+//        return ex.Newf("unexpected error")
 //    }
+//
+// Terminate the program:
 //
 // Use Fatalf or Fatal to exit the program with an stackful error. It will print
 // the error message and stack trace to the standard error output.
