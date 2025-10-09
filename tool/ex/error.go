@@ -52,7 +52,7 @@ import (
 // Use Fatalf or Fatal to exit the program with an stackful error. It will print
 // the error message and stack trace to the standard error output.
 
-const numSkipFrame = 4 // skip the Errorf/Fatalf caller
+const numSkipFrame = 4 // skip the Wrapf/Newf/Fatalf caller
 
 // stackfulError represents an error with stack trace information
 type stackfulError struct {
