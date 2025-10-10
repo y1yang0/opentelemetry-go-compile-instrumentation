@@ -7,7 +7,7 @@
   "packageRules": [
     {
       "groupName": "all patch versions",
-      "schedule": ["before 8am every weekday"]
+      "schedule": ["before 8am on Monday"]
     }
   ],
   "labels": [
