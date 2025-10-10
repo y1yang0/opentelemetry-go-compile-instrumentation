@@ -52,7 +52,7 @@ func (ap *AstParser) Parse(filePath string, mode parser.Mode) (*dst.File, error)
 // ParseSource parses the AST from complete source code.
 func (ap *AstParser) ParseSource(source string) (*dst.File, error) {
 	if source == "" {
-		return nil, ex.Newf("empty source")
+		return nil, ex.New("empty source")
 	}
 	dstRoot, err := ap.dec.Parse(source)
 	if err != nil {

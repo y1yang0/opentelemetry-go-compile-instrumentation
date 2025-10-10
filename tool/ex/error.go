@@ -39,12 +39,15 @@ import (
 //        return ex.Wrap(err)
 //    }
 //
-// 2. To create a new error from scratch, use Newf. This generates a new
+// 2. To create a new error from scratch, use New or Newf. This generates a new
 //    error with a stack trace at the point of creation.
 //
 //    Example:
 //    if unexpected {
-//        return ex.Newf("unexpected error")
+//        return ex.New("unexpected error")
+//    }
+//    if badValue {
+//        return ex.Newf("bad value: %v", value)
 //    }
 //
 // Terminate the program:
@@ -52,7 +55,10 @@ import (
 // Use Fatalf or Fatal to exit the program with an stackful error. It will print
 // the error message and stack trace to the standard error output.
 
-const numSkipFrame = 4 // skip the Wrapf/Newf/Fatalf caller
+const (
+	numSkipFrame = 4 // skip the {New,Newf,Wrap,Wrapf} caller
+	modPrefix    = "github.com/open-telemetry/opentelemetry-go-compile-instrumentation/"
+)
 
 // stackfulError represents an error with stack trace information
 type stackfulError struct {
@@ -64,7 +70,7 @@ type stackfulError struct {
 func (e *stackfulError) Error() string { return strings.Join(e.message, "\n") }
 func (e *stackfulError) Unwrap() error { return e.wrapped }
 
-func getFrames() []string {
+func captureStack() []string {
 	const initFrames = 30
 	frameList := make([]string, 0)
 	pcs := make([]uintptr, initFrames)
@@ -80,8 +86,7 @@ func getFrames() []string {
 		if !more {
 			break
 		}
-		const prefix = "github.com/open-telemetry/opentelemetry-go-compile-instrumentation"
-		fnName := strings.TrimPrefix(frame.Function, prefix)
+		fnName := strings.TrimPrefix(frame.Function, modPrefix)
 		f := fmt.Sprintf("[%d]%s:%d %s", cnt, frame.File, frame.Line, fnName)
 		frameList = append(frameList, f)
 		cnt++
@@ -108,7 +113,7 @@ func wrapOrCreate(previousErr error, format string, args ...any) error {
 	}
 	e := &stackfulError{
 		message: []string{errMsg},
-		frame:   getFrames(),
+		frame:   captureStack(),
 		wrapped: previousErr,
 	}
 	return e
@@ -120,6 +125,10 @@ func Wrap(previousErr error) error {
 
 func Wrapf(previousErr error, format string, args ...any) error {
 	return wrapOrCreate(previousErr, format, args...)
+}
+
+func New(message string) error {
+	return wrapOrCreate(nil, message)
 }
 
 func Newf(format string, args ...any) error {
@@ -140,8 +149,8 @@ func Fatal(err error) {
 		for i, m := range e.message {
 			em += fmt.Sprintf("[%d] %s\n", i, m)
 		}
-		msg := fmt.Sprintf("Error:\n%s\nStack:\n%s", em, strings.Join(e.frame, "\n"))
-		_, _ = fmt.Fprint(os.Stderr, msg)
+		_, _ = fmt.Fprintf(os.Stderr, "Error:\n%s\nStack:\n%s",
+			em, strings.Join(e.frame, "\n"))
 		os.Exit(1)
 	}
 	panic(err)

@@ -332,7 +332,7 @@ func (ip *InstrumentPhase) callAfterHook(t *rule.InstFuncRule, traits []ParamTra
 
 func rectifyAnyType(paramList *dst.FieldList, traits []ParamTrait) error {
 	if len(paramList.List) != len(traits) {
-		return ex.Newf("hook func signature can not match with target function")
+		return ex.New("hook func signature can not match with target function")
 	}
 	for i, field := range paramList.List {
 		trait := traits[i]
@@ -731,7 +731,7 @@ func (ip *InstrumentPhase) callHookFunc(t *rule.InstFuncRule, before bool) error
 	}
 	// Fulfill the hook context before calling the real hook code.
 	if !ip.replenishHookContext(before) {
-		return ex.Newf("failed to replenish hook context")
+		return ex.New("failed to replenish hook context")
 	}
 	return nil
 }
