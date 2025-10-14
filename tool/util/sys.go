@@ -27,7 +27,7 @@ func RunCmdWithEnv(ctx context.Context, env []string, args ...string) error {
 	cmd.Env = env
 	err := cmd.Run()
 	if err != nil {
-		return ex.Wrapf(err, "failed to run command %s", path)
+		return ex.Wrapf(err, "failed to run command %q with args: %v", path, args)
 	}
 	return nil
 }

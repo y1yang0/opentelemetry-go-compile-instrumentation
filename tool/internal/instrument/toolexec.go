@@ -6,7 +6,6 @@ package instrument
 import (
 	"context"
 	"log/slog"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -49,24 +48,17 @@ func (ip *InstrumentPhase) Warn(msg string, args ...any)  { ip.logger.Warn(msg, 
 func (ip *InstrumentPhase) Debug(msg string, args ...any) { ip.logger.Debug(msg, args...) }
 
 // keepForDebug keeps the the file to .otel-build directory for debugging
-func (ip *InstrumentPhase) keepForDebug(path string) {
+func (ip *InstrumentPhase) keepForDebug(name string) {
 	util.Assert(ip.packageName != "", "sanity check")
 	escape := func(s string) string {
 		dirName := strings.ReplaceAll(s, "/", "_")
 		dirName = strings.ReplaceAll(dirName, ".", "_")
 		return dirName
 	}
-	dest := filepath.Join("debug", escape(ip.packageName), filepath.Base(path))
-	dest = util.GetBuildTemp(dest)
-	err := os.MkdirAll(filepath.Dir(dest), os.ModePerm)
-	if err != nil { // error is tolerable here
-		ip.Warn("failed to create debug file directory", "dest", dest, "error", err)
-		return
-	}
-	err = util.CopyFile(path, dest)
-	if err != nil { // error is tolerable here
-		ip.Warn("failed to save debug file", "dest", dest, "error", err)
-		return
+	dest := filepath.Join("debug", escape(ip.packageName), filepath.Base(name))
+	err := util.CopyFile(name, util.GetBuildTemp(dest))
+	if err != nil { // error is tolerable here as this is only for debugging
+		ip.Warn("failed to save modified file", "dest", dest, "error", err)
 	}
 }
 
@@ -90,15 +82,19 @@ func interceptCompile(ctx context.Context, args []string) ([]string, error) {
 		packageName: util.FindFlagValue(args, "-p"),
 	}
 
-	// Check if the current compile command matches the rules.
-	matchedRules, err := ip.match(args)
+	util.Assert(util.IsCompileCommand(strings.Join(args, " ")), "sanity check")
+	// Load matched hook rules from setup phase
+	allSet, err := ip.load()
 	if err != nil {
 		return nil, err
 	}
-	if len(matchedRules) > 0 {
-		ip.Info("Instrument package", "rules", matchedRules, "args", args)
+
+	// Check if the current compile command matches the rules.
+	matched := ip.match(allSet, args)
+	if !matched.IsEmpty() {
+		ip.Info("Instrument package", "rules", matched, "args", args)
 		// Okay, this package should be instrumented.
-		err = ip.instrument(matchedRules, args)
+		err = ip.instrument(matched)
 		if err != nil {
 			return nil, err
 		}

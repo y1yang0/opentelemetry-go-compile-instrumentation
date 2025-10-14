@@ -3,6 +3,8 @@
 
 package main
 
+type MyStruct struct{}
+
 // Example demonstrates how to use the instrumenter.
 func Example() {
 	// Output:
@@ -13,4 +15,7 @@ func Example() {
 func main() {
 	// Call the Example function to trigger the instrumentation
 	Example()
+	m := &MyStruct{}
+	// Add a new field to the struct
+	println(m.NewField)
 }

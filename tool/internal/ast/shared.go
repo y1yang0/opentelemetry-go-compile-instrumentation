@@ -17,11 +17,9 @@ import (
 // This file contains shared utility functions for AST traversal and manipulation.
 // It provides common operations for finding, filtering, and processing AST nodes
 
-func findFuncDecls(root *dst.File, lambda func(*dst.FuncDecl) bool) ([]*dst.FuncDecl, error) {
-	funcDecls, err := ListFuncDecls(root)
-	if err != nil {
-		return nil, err
-	}
+func findFuncDecls(root *dst.File, lambda func(*dst.FuncDecl) bool) []*dst.FuncDecl {
+	funcDecls := ListFuncDecls(root)
+
 	// The function with receiver and the function without receiver may have
 	// the same name, so they need to be classified into the same name
 	found := make([]*dst.FuncDecl, 0)
@@ -30,37 +28,32 @@ func findFuncDecls(root *dst.File, lambda func(*dst.FuncDecl) bool) ([]*dst.Func
 			found = append(found, funcDecl)
 		}
 	}
-	return found, nil
+	return found
 }
 
-func FindFuncDeclWithoutRecv(root *dst.File, funcName string) (*dst.FuncDecl, error) {
-	decls, err := findFuncDecls(root, func(funcDecl *dst.FuncDecl) bool {
+func FindFuncDeclWithoutRecv(root *dst.File, funcName string) *dst.FuncDecl {
+	decls := findFuncDecls(root, func(funcDecl *dst.FuncDecl) bool {
 		return funcDecl.Name.Name == funcName && !HasReceiver(funcDecl)
 	})
-	if err != nil {
-		return nil, err
-	}
+
 	if len(decls) == 0 {
-		//nolint:nilnil // no function declaration found is not an error
-		return nil, nil
+		return nil
 	}
-	return decls[0], nil
+	return decls[0]
 }
 
-func FindFuncDecl(root *dst.File, funcName string) ([]*dst.FuncDecl, error) {
+func FindFuncDecl(root *dst.File, funcName string) []*dst.FuncDecl {
 	const maxMatchDecls = 2
-	decls, err := findFuncDecls(root, func(funcDecl *dst.FuncDecl) bool {
+	decls := findFuncDecls(root, func(funcDecl *dst.FuncDecl) bool {
 		return funcDecl.Name.Name == funcName
 	})
-	if err != nil {
-		return nil, err
-	}
+
 	// one with receiver and one without receiver, at most two
 	util.Assert(len(decls) <= maxMatchDecls, "sanity check")
-	return decls, nil
+	return decls
 }
 
-func ListFuncDecls(root *dst.File) ([]*dst.FuncDecl, error) {
+func ListFuncDecls(root *dst.File) []*dst.FuncDecl {
 	funcDecls := make([]*dst.FuncDecl, 0)
 	for _, decl := range root.Decls {
 		funcDecl, ok := decl.(*dst.FuncDecl)
@@ -69,7 +62,20 @@ func ListFuncDecls(root *dst.File) ([]*dst.FuncDecl, error) {
 		}
 		funcDecls = append(funcDecls, funcDecl)
 	}
-	return funcDecls, nil
+	return funcDecls
+}
+
+func FindStructDecl(root *dst.File, structName string) *dst.GenDecl {
+	for _, decl := range root.Decls {
+		if genDecl, ok := decl.(*dst.GenDecl); ok && genDecl.Tok == token.TYPE {
+			if typeSpec, ok1 := genDecl.Specs[0].(*dst.TypeSpec); ok1 {
+				if typeSpec.Name.Name == structName {
+					return genDecl
+				}
+			}
+		}
+	}
+	return nil
 }
 
 func HasReceiver(fn *dst.FuncDecl) bool {
@@ -105,4 +111,15 @@ func IsInterfaceType(t dst.Expr) bool {
 func IsEllipsis(t dst.Expr) bool {
 	_, ok := t.(*dst.Ellipsis)
 	return ok
+}
+
+func AddStructField(decl dst.Decl, name string, t string) {
+	gen, ok := decl.(*dst.GenDecl)
+	util.Assert(ok, "decl is not a GenDecl")
+	fd := Field(name, Ident(t))
+	ty, ok := gen.Specs[0].(*dst.TypeSpec)
+	util.Assert(ok, "ty is not a TypeSpec")
+	st, ok := ty.Type.(*dst.StructType)
+	util.Assert(ok, "st is not a StructType")
+	st.Fields.List = append(st.Fields.List, fd)
 }

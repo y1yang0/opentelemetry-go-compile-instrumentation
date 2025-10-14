@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -49,9 +50,12 @@ func TestInstrument(t *testing.T) {
 	}{
 		{"valid compile with instrumentation", false},
 	}
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelDebug,
+	}))
+	ctx := util.ContextWithLogger(context.Background(), logger)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx := context.Background()
 			tempDir := setupTestEnvironment(t)
 
 			args := createCompileArgs(tempDir)
@@ -92,7 +96,7 @@ func setupTestEnvironment(t *testing.T) string {
 	}
 
 	// Create matched.json with test rules
-	matchedJSON, err := createTestRuleJSON(otelHelloWorldPath)
+	matchedJSON, err := createTestRuleJSON(t, otelHelloWorldPath)
 	require.NoError(t, err)
 	matchedFile := filepath.Join(buildDir, matchedJSONFile)
 	err = os.WriteFile(matchedFile, matchedJSON, 0o644)
@@ -117,15 +121,41 @@ func createCompileArgs(tempDir string) []string {
 	}
 }
 
-func createTestRuleJSON(path string) ([]byte, error) {
-	rules := []rule.InstFuncRule{
+func createTestRuleJSON(t *testing.T, path string) ([]byte, error) {
+	absMainGoFile, err := filepath.Abs(mainGoFile)
+	require.NoError(t, err)
+	ruleSet := []*rule.InstRuleSet{
 		{
-			Name:     "hook_helloworld",
-			Path:     path,
-			Pointcut: "main.Example",
-			Before:   "MyHookBefore",
-			After:    "MyHookAfter",
+			PackageName: "main",
+			ModulePath:  "main",
+			FuncRules: map[string][]*rule.InstFuncRule{
+				absMainGoFile: {
+					{
+						InstBaseRule: rule.InstBaseRule{
+							Name:   "hook_helloworld",
+							Target: "main",
+						},
+						Path:   path,
+						Func:   "Example",
+						Before: "MyHookBefore",
+						After:  "MyHookAfter",
+					},
+				},
+			},
+			StructRules: map[string][]*rule.InstStructRule{
+				absMainGoFile: {
+					{
+						InstBaseRule: rule.InstBaseRule{
+							Name:   "add_new_field",
+							Target: "main",
+						},
+						Struct:    "MyStruct",
+						FieldName: "NewField",
+						FieldType: "string",
+					},
+				},
+			},
 		},
 	}
-	return json.Marshal(rules)
+	return json.Marshal(ruleSet)
 }

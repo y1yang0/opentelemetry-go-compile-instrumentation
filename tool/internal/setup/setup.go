@@ -23,13 +23,13 @@ func (sp *SetupPhase) Error(msg string, args ...any) { sp.logger.Error(msg, args
 func (sp *SetupPhase) Warn(msg string, args ...any)  { sp.logger.Warn(msg, args...) }
 func (sp *SetupPhase) Debug(msg string, args ...any) { sp.logger.Debug(msg, args...) }
 
-// recordModified copies the file to the build temp directory for debugging
+// keepForDebug copies the file to the build temp directory for debugging
 // Error is tolerated as it's not critical.
-func (sp *SetupPhase) recordModified(name string) {
-	dstFile := filepath.Join(util.GetBuildTemp("modified"), name)
+func (sp *SetupPhase) keepForDebug(name string) {
+	dstFile := filepath.Join(util.GetBuildTemp("debug"), "main", name)
 	err := util.CopyFile(name, dstFile)
 	if err != nil {
-		sp.Warn("failed to copy file", "file", name, "error", err)
+		sp.Warn("failed to record added file", "file", name, "error", err)
 	}
 }
 
@@ -57,7 +57,7 @@ func Setup(ctx context.Context) error {
 		return err
 	}
 	// Match the hook code with these dependencies
-	matched, err := sp.matchedDeps(deps)
+	matched, err := sp.matchDeps(deps)
 	if err != nil {
 		return err
 	}
