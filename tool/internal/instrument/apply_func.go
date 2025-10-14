@@ -17,14 +17,14 @@ import (
 )
 
 const (
-	TJumpLabel      = "/* TRAMPOLINE_JUMP_IF */"
-	OtelGlobalsFile = "otel.globals.go"
+	tJumpLabel      = "/* TRAMPOLINE_JUMP_IF */"
+	otelGlobalsFile = "otel.globals.go"
 )
 
 func makeName(r *rule.InstFuncRule, funcDecl *dst.FuncDecl, isBefore bool) string {
-	prefix := TrampolineAfterName
+	prefix := trampolineAfterName
 	if isBefore {
-		prefix = TrampolineBeforeName
+		prefix = trampolineBeforeName
 	}
 	return fmt.Sprintf("%s_%s%s",
 		prefix, funcDecl.Name.Name, util.CRC32(r.String()))
@@ -33,7 +33,7 @@ func makeName(r *rule.InstFuncRule, funcDecl *dst.FuncDecl, isBefore bool) strin
 func findJumpPoint(jumpIf *dst.IfStmt) *dst.BlockStmt {
 	// Multiple func rules may apply to the same function, we need to find the
 	// appropriate jump point to insert trampoline jump.
-	if len(jumpIf.Decs.If) == 1 && jumpIf.Decs.If[0] == TJumpLabel {
+	if len(jumpIf.Decs.If) == 1 && jumpIf.Decs.If[0] == tJumpLabel {
 		// Insert trampoline jump within the else block
 		elseBlock, ok := jumpIf.Else.(*dst.BlockStmt)
 		util.Assert(ok, "elseBlock is not a BlockStmt")
@@ -101,7 +101,7 @@ func createTJumpIf(t *rule.InstFuncRule, funcDecl *dst.FuncDecl,
 		// AST tree, we need to replicate the return values
 		// as they are already used in return statement above
 		clone := make([]dst.Expr, len(retVals)+1)
-		clone[0] = ast.Ident(TrampolineHookContextName + funcSuffix)
+		clone[0] = ast.Ident(trampolineHookContextName + funcSuffix)
 		for i := 1; i < len(clone); i++ {
 			clone[i] = ast.AddressOf(retVals[i-1])
 		}
@@ -109,19 +109,19 @@ func createTJumpIf(t *rule.InstFuncRule, funcDecl *dst.FuncDecl,
 	}())
 	tjumpInit := ast.DefineStmts(
 		ast.Exprs(
-			ast.Ident(TrampolineHookContextName+funcSuffix),
-			ast.Ident(TrampolineSkipName+funcSuffix),
+			ast.Ident(trampolineHookContextName+funcSuffix),
+			ast.Ident(trampolineSkipName+funcSuffix),
 		),
 		ast.Exprs(beforeCall),
 	)
-	tjumpCond := ast.Ident(TrampolineSkipName + funcSuffix)
+	tjumpCond := ast.Ident(trampolineSkipName + funcSuffix)
 	tjumpBody := ast.BlockStmts(
 		ast.ExprStmt(afterCall),
 		ast.ReturnStmt(retVals),
 	)
 	tjumpElse := ast.Block(ast.DeferStmt(afterCall))
 	tjump := ast.IfStmt(tjumpInit, tjumpCond, tjumpBody, tjumpElse)
-	tjump.Decs.If.Append(TJumpLabel)
+	tjump.Decs.If.Append(tJumpLabel)
 	return tjump
 }
 
@@ -246,7 +246,7 @@ func (ip *InstrumentPhase) writeGlobals(pkgName string) error {
 	trampoline.Decls = append(trampoline.Decls, api.Decls...)
 
 	// Write trampoline code to file
-	path := filepath.Join(ip.workDir, OtelGlobalsFile)
+	path := filepath.Join(ip.workDir, otelGlobalsFile)
 	err = ast.WriteFile(path, trampoline)
 	if err != nil {
 		return err

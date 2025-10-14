@@ -30,26 +30,26 @@ import (
 // its name suggests, it jumps to the trampoline function from raw function.
 
 const (
-	TrampolineBeforeName            = "OtelBeforeTrampoline"
-	TrampolineAfterName             = "OtelAfterTrampoline"
-	TrampolineHookContextName       = "hookContext"
-	TrampolineHookContextType       = "HookContext"
-	TrampolineSkipName              = "skip"
-	TrampolineSetParamName          = "SetParam"
-	TrampolineGetParamName          = "GetParam"
-	TrampolineSetReturnValName      = "SetReturnVal"
-	TrampolineGetReturnValName      = "GetReturnVal"
-	TrampolineValIdentifier         = "val"
-	TrampolineCtxIdentifier         = "c"
-	TrampolineParamsIdentifier      = "Params"
-	TrampolineFuncNameIdentifier    = "FuncName"
-	TrampolinePackageNameIdentifier = "PackageName"
-	TrampolineReturnValsIdentifier  = "ReturnVals"
-	TrampolineHookContextImplType   = "HookContextImpl"
-	TrampolineBeforeNamePlaceholder = `"OtelBeforeNamePlaceholder"`
-	TrampolineAfterNamePlaceholder  = `"OtelAfterNamePlaceholder"`
-	TrampolineBefore                = true
-	TrampolineAfter                 = false
+	trampolineBeforeName            = "OtelBeforeTrampoline"
+	trampolineAfterName             = "OtelAfterTrampoline"
+	trampolineHookContextName       = "hookContext"
+	trampolineHookContextType       = "HookContext"
+	trampolineSkipName              = "skip"
+	trampolineSetParamName          = "SetParam"
+	trampolineGetParamName          = "GetParam"
+	trampolineSetReturnValName      = "SetReturnVal"
+	trampolineGetReturnValName      = "GetReturnVal"
+	trampolineValIdentifier         = "val"
+	trampolineCtxIdentifier         = "c"
+	trampolineParamsIdentifier      = "params"
+	trampolineFuncNameIdentifier    = "funcName"
+	trampolinePackageNameIdentifier = "packageName"
+	trampolineReturnValsIdentifier  = "returnVals"
+	trampolineHookContextImplType   = "HookContextImpl"
+	trampolineBeforeNamePlaceholder = `"OtelBeforeNamePlaceholder"`
+	trampolineAfterNamePlaceholder  = `"OtelAfterNamePlaceholder"`
+	trampolineBefore                = true
+	trampolineAfter                 = false
 )
 
 // @@ Modification on this trampoline template should be cautious, as it imposes
@@ -85,10 +85,10 @@ func (ip *InstrumentPhase) materializeTemplate() error {
 		// Materialize function declarations
 		if decl, ok := node.(*dst.FuncDecl); ok {
 			switch decl.Name.Name {
-			case TrampolineBeforeName:
+			case trampolineBeforeName:
 				ip.beforeHookFunc = decl
 				ip.addDecl(decl)
-			case TrampolineAfterName:
+			case trampolineAfterName:
 				ip.afterHookFunc = decl
 				ip.addDecl(decl)
 			default:
@@ -98,7 +98,7 @@ func (ip *InstrumentPhase) materializeTemplate() error {
 					util.Assert(ok1, "t is not a StarExpr")
 					t2, ok2 := t.X.(*dst.Ident)
 					util.Assert(ok2, "t2 is not a Ident")
-					util.Assert(t2.Name == TrampolineHookContextImplType, "sanity check")
+					util.Assert(t2.Name == trampolineHookContextImplType, "sanity check")
 					ip.hookCtxMethods = append(ip.hookCtxMethods, decl)
 					ip.addDecl(decl)
 				}
@@ -267,7 +267,7 @@ func (ip *InstrumentPhase) callBeforeHook(t *rule.InstFuncRule, traits []ParamTr
 	}
 	// Hook: 	   func beforeFoo(hookContext* HookContext, p*[]int)
 	// Trampoline: func OtelBeforeTrampoline_foo(p *[]int)
-	args := []dst.Expr{ast.Ident(TrampolineHookContextName)}
+	args := []dst.Expr{ast.Ident(trampolineHookContextName)}
 	if ip.exact {
 		for idx, field := range ip.beforeHookFunc.Type.Params.List {
 			trait := traits[idx+1 /*HookContext*/]
@@ -302,7 +302,7 @@ func (ip *InstrumentPhase) callAfterHook(t *rule.InstFuncRule, traits []ParamTra
 	var args []dst.Expr
 	for idx, field := range ip.afterHookFunc.Type.Params.List {
 		if idx == 0 {
-			args = append(args, ast.Ident(TrampolineHookContextName))
+			args = append(args, ast.Ident(trampolineHookContextName))
 			if !ip.exact {
 				// Generic hook function, no need to process parameters
 				break
@@ -400,20 +400,20 @@ func insertAtEnd(funcDecl *dst.FuncDecl, stmt dst.Stmt) {
 
 func (ip *InstrumentPhase) renameTrampolineFunc(t *rule.InstFuncRule) {
 	// Randomize trampoline function names
-	ip.beforeHookFunc.Name.Name = makeName(t, ip.rawFunc, TrampolineBefore)
+	ip.beforeHookFunc.Name.Name = makeName(t, ip.rawFunc, trampolineBefore)
 	dst.Inspect(ip.beforeHookFunc, func(node dst.Node) bool {
 		if basicLit, ok := node.(*dst.BasicLit); ok {
 			// Replace OtelBeforeTrampolinePlaceHolder to real hook func name
-			if basicLit.Value == TrampolineBeforeNamePlaceholder {
+			if basicLit.Value == trampolineBeforeNamePlaceholder {
 				basicLit.Value = strconv.Quote(t.GetBefore())
 			}
 		}
 		return true
 	})
-	ip.afterHookFunc.Name.Name = makeName(t, ip.rawFunc, TrampolineAfter)
+	ip.afterHookFunc.Name.Name = makeName(t, ip.rawFunc, trampolineAfter)
 	dst.Inspect(ip.afterHookFunc, func(node dst.Node) bool {
 		if basicLit, ok := node.(*dst.BasicLit); ok {
-			if basicLit.Value == TrampolineAfterNamePlaceholder {
+			if basicLit.Value == trampolineAfterNamePlaceholder {
 				basicLit.Value = strconv.Quote(t.GetAfter())
 			}
 		}
@@ -423,8 +423,8 @@ func (ip *InstrumentPhase) renameTrampolineFunc(t *rule.InstFuncRule) {
 
 func addHookContext(list *dst.FieldList) {
 	hookCtx := ast.Field(
-		TrampolineHookContextName,
-		ast.Ident(TrampolineHookContextType),
+		trampolineHookContextName,
+		ast.Ident(trampolineHookContextType),
 	)
 	list.List = append([]*dst.Field{hookCtx}, list.List...)
 }
@@ -509,12 +509,12 @@ func (ip *InstrumentPhase) replenishHookContext(before bool) bool {
 			lhs := assignStmt.Lhs
 			if sel, ok1 := lhs[0].(*dst.SelectorExpr); ok1 {
 				switch sel.Sel.Name {
-				case TrampolineFuncNameIdentifier:
+				case trampolineFuncNameIdentifier:
 					util.Assert(before, "sanity check")
 					// hookContext.FuncName = "..."
 					assigned := assignString(assignStmt, ip.rawFunc.Name.Name)
 					util.Assert(assigned, "sanity check")
-				case TrampolinePackageNameIdentifier:
+				case trampolinePackageNameIdentifier:
 					util.Assert(before, "sanity check")
 					// hookContext.PackageName = "..."
 					assigned := assignString(assignStmt, ip.target.Name.Name)
@@ -558,7 +558,7 @@ func (ip *InstrumentPhase) implementHookContext(t *rule.InstFuncRule) {
 	suffix := util.CRC32(t.String())
 	structType, ok := ip.hookCtxDecl.Specs[0].(*dst.TypeSpec)
 	util.Assert(ok, "structType is not a TypeSpec")
-	util.Assert(structType.Name.Name == TrampolineHookContextImplType,
+	util.Assert(structType.Name.Name == trampolineHookContextImplType,
 		"sanity check")
 	structType.Name.Name += suffix             // type declaration
 	for _, method := range ip.hookCtxMethods { // method declaration
@@ -571,7 +571,7 @@ func (ip *InstrumentPhase) implementHookContext(t *rule.InstFuncRule) {
 	for _, node := range []dst.Node{ip.beforeHookFunc, ip.afterHookFunc} {
 		dst.Inspect(node, func(node dst.Node) bool {
 			if ident, ok1 := node.(*dst.Ident); ok1 {
-				if ident.Name == TrampolineHookContextImplType {
+				if ident.Name == trampolineHookContextImplType {
 					ident.Name += suffix
 					return false
 				}
@@ -584,12 +584,12 @@ func (ip *InstrumentPhase) implementHookContext(t *rule.InstFuncRule) {
 func setValue(field string, idx int, t dst.Expr) *dst.CaseClause {
 	// *(c.Params[idx].(*int)) = val.(int)
 	// c.Params[idx] = val iff type is interface{}
-	se := ast.SelectorExpr(ast.Ident(TrampolineCtxIdentifier), field)
+	se := ast.SelectorExpr(ast.Ident(trampolineCtxIdentifier), field)
 	ie := ast.IndexExpr(se, ast.IntLit(idx))
 	te := ast.TypeAssertExpr(ie, ast.DereferenceOf(t))
 	pe := ast.ParenExpr(te)
 	de := ast.DereferenceOf(pe)
-	val := ast.Ident(TrampolineValIdentifier)
+	val := ast.Ident(trampolineValIdentifier)
 	assign := ast.AssignStmt(de, ast.TypeAssertExpr(val, t))
 	if ast.IsInterfaceType(t) {
 		assign = ast.AssignStmt(ie, val)
@@ -604,7 +604,7 @@ func setValue(field string, idx int, t dst.Expr) *dst.CaseClause {
 func getValue(field string, idx int, t dst.Expr) *dst.CaseClause {
 	// return *(c.Params[idx].(*int))
 	// return c.Params[idx] iff type is interface{}
-	se := ast.SelectorExpr(ast.Ident(TrampolineCtxIdentifier), field)
+	se := ast.SelectorExpr(ast.Ident(trampolineCtxIdentifier), field)
 	ie := ast.IndexExpr(se, ast.IntLit(idx))
 	te := ast.TypeAssertExpr(ie, ast.DereferenceOf(t))
 	pe := ast.ParenExpr(te)
@@ -621,19 +621,19 @@ func getValue(field string, idx int, t dst.Expr) *dst.CaseClause {
 }
 
 func getParamClause(idx int, t dst.Expr) *dst.CaseClause {
-	return getValue(TrampolineParamsIdentifier, idx, t)
+	return getValue(trampolineParamsIdentifier, idx, t)
 }
 
 func setParamClause(idx int, t dst.Expr) *dst.CaseClause {
-	return setValue(TrampolineParamsIdentifier, idx, t)
+	return setValue(trampolineParamsIdentifier, idx, t)
 }
 
 func getReturnValClause(idx int, t dst.Expr) *dst.CaseClause {
-	return getValue(TrampolineReturnValsIdentifier, idx, t)
+	return getValue(trampolineReturnValsIdentifier, idx, t)
 }
 
 func setReturnValClause(idx int, t dst.Expr) *dst.CaseClause {
-	return setValue(TrampolineReturnValsIdentifier, idx, t)
+	return setValue(trampolineReturnValsIdentifier, idx, t)
 }
 
 // desugarType desugars parameter type to its original type, if parameter
@@ -653,13 +653,13 @@ func (ip *InstrumentPhase) rewriteHookContext() {
 	var methodSetParam, methodGetParam, methodGetRetVal, methodSetRetVal *dst.FuncDecl
 	for _, decl := range ip.hookCtxMethods {
 		switch decl.Name.Name {
-		case TrampolineSetParamName:
+		case trampolineSetParamName:
 			methodSetParam = decl
-		case TrampolineGetParamName:
+		case trampolineGetParamName:
 			methodGetParam = decl
-		case TrampolineGetReturnValName:
+		case trampolineGetReturnValName:
 			methodGetRetVal = decl
-		case TrampolineSetReturnValName:
+		case trampolineSetReturnValName:
 			methodSetRetVal = decl
 		}
 	}
@@ -757,13 +757,13 @@ func (ip *InstrumentPhase) createTrampoline(t *rule.InstFuncRule) error {
 	ip.buildTrampolineTypes()
 	// Generate calls to real hook functions
 	if t.GetBefore() != "" {
-		err = ip.callHookFunc(t, TrampolineBefore)
+		err = ip.callHookFunc(t, trampolineBefore)
 		if err != nil {
 			return err
 		}
 	}
 	if t.GetAfter() != "" {
-		err = ip.callHookFunc(t, TrampolineAfter)
+		err = ip.callHookFunc(t, trampolineAfter)
 		if err != nil {
 			return err
 		}

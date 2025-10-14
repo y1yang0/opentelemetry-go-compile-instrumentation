@@ -5,37 +5,37 @@ package instrument
 
 //line <generated>:1
 type HookContextImpl struct {
-	Params      []interface{}
-	ReturnVals  []interface{}
-	SkipCall    bool
-	Data        interface{}
-	FuncName    string
-	PackageName string
+	params      []interface{}
+	returnVals  []interface{}
+	skipCall    bool
+	data        interface{}
+	funcName    string
+	packageName string
 }
 
-func (c *HookContextImpl) SetSkipCall(skip bool)    { c.SkipCall = skip }
-func (c *HookContextImpl) IsSkipCall() bool         { return c.SkipCall }
-func (c *HookContextImpl) SetData(data interface{}) { c.Data = data }
-func (c *HookContextImpl) GetData() interface{}     { return c.Data }
+func (c *HookContextImpl) SetSkipCall(skip bool)    { c.skipCall = skip }
+func (c *HookContextImpl) IsSkipCall() bool         { return c.skipCall }
+func (c *HookContextImpl) SetData(data interface{}) { c.data = data }
+func (c *HookContextImpl) GetData() interface{}     { return c.data }
 func (c *HookContextImpl) GetKeyData(key string) interface{} {
-	if c.Data == nil {
+	if c.data == nil {
 		return nil
 	}
-	return c.Data.(map[string]interface{})[key]
+	return c.data.(map[string]interface{})[key]
 }
 
 func (c *HookContextImpl) SetKeyData(key string, val interface{}) {
-	if c.Data == nil {
-		c.Data = make(map[string]interface{})
+	if c.data == nil {
+		c.data = make(map[string]interface{})
 	}
-	c.Data.(map[string]interface{})[key] = val
+	c.data.(map[string]interface{})[key] = val
 }
 
 func (c *HookContextImpl) HasKeyData(key string) bool {
-	if c.Data == nil {
+	if c.data == nil {
 		return false
 	}
-	_, ok := c.Data.(map[string]interface{})[key]
+	_, ok := c.data.(map[string]interface{})[key]
 	return ok
 }
 
@@ -47,7 +47,7 @@ func (c *HookContextImpl) GetParam(idx int) interface{} {
 
 func (c *HookContextImpl) SetParam(idx int, val interface{}) {
 	if val == nil {
-		c.Params[idx] = nil
+		c.params[idx] = nil
 		return
 	}
 	switch idx {
@@ -62,16 +62,16 @@ func (c *HookContextImpl) GetReturnVal(idx int) interface{} {
 
 func (c *HookContextImpl) SetReturnVal(idx int, val interface{}) {
 	if val == nil {
-		c.ReturnVals[idx] = nil
+		c.returnVals[idx] = nil
 		return
 	}
 	switch idx {
 	}
 }
-func (c *HookContextImpl) GetParamCount() int     { return len(c.Params) }
-func (c *HookContextImpl) GetReturnValCount() int { return len(c.ReturnVals) }
-func (c *HookContextImpl) GetFuncName() string    { return c.FuncName }
-func (c *HookContextImpl) GetPackageName() string { return c.PackageName }
+func (c *HookContextImpl) GetParamCount() int     { return len(c.params) }
+func (c *HookContextImpl) GetReturnValCount() int { return len(c.returnVals) }
+func (c *HookContextImpl) GetFuncName() string    { return c.funcName }
+func (c *HookContextImpl) GetPackageName() string { return c.packageName }
 
 // Variable Template
 var (
@@ -94,10 +94,10 @@ func OtelBeforeTrampoline() (HookContext, bool) {
 		}
 	}()
 	hookContext := &HookContextImpl{}
-	hookContext.Params = []interface{}{}
-	hookContext.FuncName = ""
-	hookContext.PackageName = ""
-	return hookContext, hookContext.SkipCall
+	hookContext.params = []interface{}{}
+	hookContext.funcName = ""
+	hookContext.packageName = ""
+	return hookContext, hookContext.skipCall
 }
 
 func OtelAfterTrampoline(hookContext HookContext) {
@@ -113,5 +113,5 @@ func OtelAfterTrampoline(hookContext HookContext) {
 			}
 		}
 	}()
-	hookContext.(*HookContextImpl).ReturnVals = []interface{}{}
+	hookContext.(*HookContextImpl).returnVals = []interface{}{}
 }
