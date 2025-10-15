@@ -16,10 +16,6 @@ import (
 	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/util"
 )
 
-const (
-	BuildPlanLog = "build-plan.log"
-)
-
 type Dependency struct {
 	ImportPath string
 	Version    string
@@ -66,11 +62,13 @@ func findCompileCommands(buildPlanLog *os.File) ([]string, error) {
 // and then filtering the compile commands from the build plan log.
 func (sp *SetupPhase) listBuildPlan(ctx context.Context, goBuildCmd []string) ([]string, error) {
 	const goBuildCmdMinLen = 1 // build/install + at least one argument
+	const buildPlanLogName = "build-plan.log"
+
 	util.Assert(len(goBuildCmd) >= goBuildCmdMinLen, "at least one argument is required")
 	util.Assert(goBuildCmd[1] == "build" || goBuildCmd[1] == "install", "sanity check")
 
 	// Create a build plan log file in the temporary directory
-	buildPlanLog, err := os.Create(util.GetBuildTemp(BuildPlanLog))
+	buildPlanLog, err := os.Create(util.GetBuildTemp(buildPlanLogName))
 	if err != nil {
 		return nil, ex.Wrapf(err, "failed to create build plan log file")
 	}
