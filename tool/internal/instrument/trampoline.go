@@ -138,9 +138,9 @@ func getNames(list *dst.FieldList) []string {
 
 func makeOnXName(t *rule.InstFuncRule, before bool) string {
 	if before {
-		return t.GetBefore()
+		return t.Before
 	}
-	return t.GetAfter()
+	return t.After
 }
 
 type ParamTrait struct {
@@ -150,21 +150,15 @@ type ParamTrait struct {
 }
 
 func isHookDefined(root *dst.File, rule *rule.InstFuncRule) bool {
-	util.Assert(rule.GetBefore() != "" || rule.GetAfter() != "", "hook must be set")
-	if rule.GetBefore() != "" {
-		decl, err := ast.FindFuncDeclWithoutRecv(root, rule.GetBefore())
-		if err != nil {
-			return false
-		}
+	util.Assert(rule.Before != "" || rule.After != "", "hook must be set")
+	if rule.Before != "" {
+		decl := ast.FindFuncDeclWithoutRecv(root, rule.Before)
 		if decl == nil {
 			return false
 		}
 	}
-	if rule.GetAfter() != "" {
-		decl, err := ast.FindFuncDeclWithoutRecv(root, rule.GetAfter())
-		if err != nil {
-			return false
-		}
+	if rule.After != "" {
+		decl := ast.FindFuncDeclWithoutRecv(root, rule.After)
 		if decl == nil {
 			return false
 		}
@@ -189,25 +183,19 @@ func findHookFile(rule *rule.InstFuncRule) (string, error) {
 			return file, nil
 		}
 	}
-	return "", ex.Newf("no hook %s/%s found for %s from %v",
-		rule.GetBefore(), rule.GetAfter(), rule.GetFuncName(), files)
+	return "", ex.Newf("no hook {%s,%s} found for %s from %v",
+		rule.Before, rule.After, rule.Func, files)
 }
 
-func findRuleFiles(r rule.InstRule) ([]string, error) {
-	path := r.GetPath()
+func findRuleFiles(r *rule.InstFuncRule) ([]string, error) {
+	path := r.Path
 	path = strings.TrimPrefix(path, util.OtelRoot)
 	path = filepath.Join(util.GetBuildTempDir(), path)
 	files, err := util.ListFiles(path)
 	if err != nil {
 		return nil, err
 	}
-	switch r.(type) {
-	case *rule.InstFuncRule:
-		return files, nil
-	default:
-		util.ShouldNotReachHere()
-	}
-	return nil, nil
+	return files, nil
 }
 
 func getHookFunc(t *rule.InstFuncRule, before bool) (*dst.FuncDecl, error) {
@@ -221,19 +209,13 @@ func getHookFunc(t *rule.InstFuncRule, before bool) (*dst.FuncDecl, error) {
 	}
 	var target *dst.FuncDecl
 	if before {
-		target, err = ast.FindFuncDeclWithoutRecv(root, t.GetBefore())
-		if err != nil {
-			return nil, err
-		}
+		target = ast.FindFuncDeclWithoutRecv(root, t.Before)
 	} else {
-		target, err = ast.FindFuncDeclWithoutRecv(root, t.GetAfter())
-		if err != nil {
-			return nil, err
-		}
+		target = ast.FindFuncDeclWithoutRecv(root, t.After)
 	}
 	if target == nil {
 		return nil, ex.Newf("hook %s or %s not found",
-			t.GetBefore(), t.GetAfter())
+			t.Before, t.After)
 	}
 	return target, nil
 }
@@ -375,10 +357,7 @@ func (ip *InstrumentPhase) addHookFuncVar(t *rule.InstFuncRule,
 			Params: paramTypes,
 		},
 	}
-	exist, err := ast.FindFuncDeclWithoutRecv(ip.target, fnName)
-	if err != nil {
-		return err
-	}
+	exist := ast.FindFuncDeclWithoutRecv(ip.target, fnName)
 	if exist == nil {
 		ip.addDecl(funcDecl)
 	}
@@ -405,7 +384,7 @@ func (ip *InstrumentPhase) renameTrampolineFunc(t *rule.InstFuncRule) {
 		if basicLit, ok := node.(*dst.BasicLit); ok {
 			// Replace OtelBeforeTrampolinePlaceHolder to real hook func name
 			if basicLit.Value == trampolineBeforeNamePlaceholder {
-				basicLit.Value = strconv.Quote(t.GetBefore())
+				basicLit.Value = strconv.Quote(t.Before)
 			}
 		}
 		return true
@@ -414,7 +393,7 @@ func (ip *InstrumentPhase) renameTrampolineFunc(t *rule.InstFuncRule) {
 	dst.Inspect(ip.afterHookFunc, func(node dst.Node) bool {
 		if basicLit, ok := node.(*dst.BasicLit); ok {
 			if basicLit.Value == trampolineAfterNamePlaceholder {
-				basicLit.Value = strconv.Quote(t.GetAfter())
+				basicLit.Value = strconv.Quote(t.After)
 			}
 		}
 		return true
@@ -638,9 +617,7 @@ func setReturnValClause(idx int, t dst.Expr) *dst.CaseClause {
 
 // desugarType desugars parameter type to its original type, if parameter
 // is type of ...T, it will be converted to []T
-//
-//nolint:ireturn // we dont know the type of the parameter
-func desugarType(param *dst.Field) dst.Expr {
+func desugarType(param *dst.Field) dst.Expr { //nolint:ireturn // we dont know the type of the parameter
 	if ft, ok := param.Type.(*dst.Ellipsis); ok {
 		return ast.ArrayType(ft.Elt)
 	}
@@ -756,13 +733,13 @@ func (ip *InstrumentPhase) createTrampoline(t *rule.InstFuncRule) error {
 	// trampoline function are the same as the target function.
 	ip.buildTrampolineTypes()
 	// Generate calls to real hook functions
-	if t.GetBefore() != "" {
+	if t.Before != "" {
 		err = ip.callHookFunc(t, trampolineBefore)
 		if err != nil {
 			return err
 		}
 	}
-	if t.GetAfter() != "" {
+	if t.After != "" {
 		err = ip.callHookFunc(t, trampolineAfter)
 		if err != nil {
 			return err

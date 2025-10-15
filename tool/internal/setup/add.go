@@ -46,7 +46,7 @@ func genVarDecl(matched []*rule.InstFuncRule) []dst.Decl {
 				Before: dst.NewLine,
 				Start: dst.Decorations{
 					fmt.Sprintf("//go:linkname _getstatck%d %s.OtelGetStackImpl",
-						i, m.GetPath()),
+						i, m.Path),
 				},
 			},
 		}
@@ -95,7 +95,7 @@ func genVarDecl(matched []*rule.InstFuncRule) []dst.Decl {
 				Before: dst.NewLine,
 				Start: dst.Decorations{
 					fmt.Sprintf("//go:linkname _printstack%d %s.OtelPrintStackImpl",
-						i, m.GetPath()),
+						i, m.Path),
 				},
 			},
 		}
@@ -119,13 +119,27 @@ func buildOtelRuntimeAst(decls []dst.Decl) *dst.File {
 	}
 }
 
-func (*SetupPhase) addDeps(matched []*rule.InstFuncRule) error {
+func (sp *SetupPhase) addDeps(matched []*rule.InstRuleSet) error {
+	rules := make([]*rule.InstFuncRule, 0)
+	for _, m := range matched {
+		funcRules := m.GetFuncRules()
+		rules = append(rules, funcRules...)
+	}
+	if len(rules) == 0 {
+		return nil
+	}
+
 	// Add required imports
-	importDecls := genImportDecl(matched)
+	importDecls := genImportDecl(rules)
 	// Generate the variable declarations that used by otel runtime
-	varDecls := genVarDecl(matched)
+	varDecls := genVarDecl(rules)
 	// Build the ast
 	root := buildOtelRuntimeAst(append(importDecls, varDecls...))
 	// Write the ast to file
-	return ast.WriteFile(OtelRuntimeFile, root)
+	err := ast.WriteFile(OtelRuntimeFile, root)
+	if err != nil {
+		return err
+	}
+	sp.keepForDebug(OtelRuntimeFile)
+	return nil
 }

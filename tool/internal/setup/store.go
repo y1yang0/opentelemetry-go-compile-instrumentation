@@ -14,7 +14,7 @@ import (
 
 // store stores the matched rules to the file
 // It's the pair of the InstrumentPhase.load
-func (sp *SetupPhase) store(matched []*rule.InstFuncRule) error {
+func (sp *SetupPhase) store(matched []*rule.InstRuleSet) error {
 	f := util.GetMatchedRuleFile()
 	file, err := os.Create(f)
 	if err != nil {
@@ -31,6 +31,6 @@ func (sp *SetupPhase) store(matched []*rule.InstFuncRule) error {
 	if err != nil {
 		return ex.Wrapf(err, "failed to write JSON to file %s", f)
 	}
-	sp.Info("Stored matched rules", "rules", matched)
+	sp.Info("Stored matched sets", "path", f)
 	return nil
 }

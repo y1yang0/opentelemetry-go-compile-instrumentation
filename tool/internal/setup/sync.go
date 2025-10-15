@@ -61,7 +61,16 @@ func addReplace(modfile *modfile.File, path, version, rpath, rversion string) (b
 	return false, nil
 }
 
-func (sp *SetupPhase) syncDeps(ctx context.Context, matched []*rule.InstFuncRule) error {
+func (sp *SetupPhase) syncDeps(ctx context.Context, matched []*rule.InstRuleSet) error {
+	rules := make([]*rule.InstFuncRule, 0)
+	for _, m := range matched {
+		funcRules := m.GetFuncRules()
+		rules = append(rules, funcRules...)
+	}
+	if len(rules) == 0 {
+		return nil
+	}
+
 	const goModFile = "go.mod"
 	modfile, err := parseGoMod(goModFile)
 	if err != nil {
@@ -69,7 +78,7 @@ func (sp *SetupPhase) syncDeps(ctx context.Context, matched []*rule.InstFuncRule
 	}
 	changed := false
 	// Add matched dependencies to go.mod
-	for _, m := range matched {
+	for _, m := range rules {
 		util.Assert(strings.HasPrefix(m.Path, util.OtelRoot), "sanity check")
 		// TODO: Since we haven't published the instrumentation packages yet,
 		// we need to add the replace directive to the local path.
@@ -107,7 +116,7 @@ func (sp *SetupPhase) syncDeps(ctx context.Context, matched []*rule.InstFuncRule
 		if err != nil {
 			return err
 		}
-		sp.recordModified(goModFile)
+		sp.keepForDebug(goModFile)
 	}
 	return nil
 }

@@ -268,68 +268,50 @@ func (ip *InstrumentPhase) writeInstrumented(root *dst.File, oldFile string) err
 	// Replace the original file with the new file in the compile command
 	replace := false
 	for i, arg := range ip.compileArgs {
-		if arg == oldFile {
+		// Files in the compile command maybe relative or absolute, we need to
+		// consolidate them to absolute path
+		abs, err1 := filepath.Abs(arg)
+		if err1 != nil {
+			return ex.Wrap(err1)
+		}
+		if abs == oldFile {
 			ip.compileArgs[i] = newFile
 			replace = true
 			break
 		}
 	}
 	if !replace {
-		return ex.Newf("cannot apply the instrumented %s for %v",
-			oldFile, ip.compileArgs)
+		return ex.Newf("cannot replace %s with %s during %v",
+			oldFile, newFile, ip.compileArgs)
 	}
 	ip.Info("Write instrumented AST", "old", oldFile, "new", newFile)
 	return nil
 }
 
-func (ip *InstrumentPhase) applyFuncRule(rule *rule.InstFuncRule, args []string) error {
-	files := make([]string, 0)
-
-	// Find all go source files from compile command
-	for _, arg := range args {
-		if util.IsGoFile(arg) {
-			files = append(files, arg)
-		}
+func (ip *InstrumentPhase) parseFile(file string) (*dst.File, error) {
+	ip.parser = ast.NewAstParser()
+	root, err := ip.parser.Parse(file, parser.ParseComments)
+	if err != nil {
+		return nil, err
 	}
-	// Parse each go source file to see if there are any matched functions
-	// and then insert tjump if so
-	instrumented := false
-	for _, file := range files {
-		ip.parser = ast.NewAstParser()
-		root, err := ip.parser.Parse(file, parser.ParseComments)
-		if err != nil {
-			return err
-		}
-		ip.target = root
-		funcDecls, err := ast.FindFuncDecl(root, rule.GetFuncName())
-		if err != nil {
-			return err
-		}
-		// No function found for the rule, skip
-		if len(funcDecls) == 0 {
-			continue
-		}
-		for _, funcDecl := range funcDecls {
-			ip.rawFunc = funcDecl
-			err = ip.insertTJump(rule, funcDecl)
-			instrumented = true
-			if err != nil {
-				return err
-			}
-			ip.Info("Apply func rule", "rule", rule, "args", args)
-		}
-		// Write the instrumented AST to new file and replace the original
-		// file in the compile command
-		err = ip.writeInstrumented(root, file)
-		if err != nil {
-			return err
-		}
+	ip.target = root
+	return root, nil
+}
+
+func (ip *InstrumentPhase) applyFuncRule(rule *rule.InstFuncRule, root *dst.File) error {
+	funcDecls := ast.FindFuncDecl(root, rule.Func)
+	// No function found for the rule, skip
+	if len(funcDecls) == 0 {
+		return ex.Newf("can not find function %s", rule.Func)
 	}
 
-	// Write globals file if any function is instrumented because injected code
-	// always requires some global variables and auxiliary declarations
-	if instrumented {
-		return ip.writeGlobals(ip.packageName)
+	for _, funcDecl := range funcDecls {
+		ip.rawFunc = funcDecl
+		err := ip.insertTJump(rule, funcDecl)
+		if err != nil {
+			return err
+		}
+		ip.Info("Apply func rule", "rule", rule)
 	}
 	return nil
 }

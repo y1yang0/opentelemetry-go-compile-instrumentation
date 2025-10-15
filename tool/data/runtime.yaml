@@ -1,0 +1,5 @@
+runtime_gls:
+  target: "runtime"
+  struct: "g"
+  field_name: "otel_trace_context"
+  field_type: "interface{}"

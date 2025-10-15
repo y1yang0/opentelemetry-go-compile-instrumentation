@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/ex"
@@ -132,7 +133,11 @@ func (sp *SetupPhase) findDeps(ctx context.Context, goBuildCmd []string) ([]*Dep
 		// Find the go files belong to the package
 		for _, arg := range args {
 			if util.IsGoFile(arg) {
-				dep.Sources = append(dep.Sources, arg)
+				abs, err1 := filepath.Abs(arg)
+				if err1 != nil {
+					return nil, ex.Wrap(err1)
+				}
+				dep.Sources = append(dep.Sources, abs)
 			}
 		}
 		deps = append(deps, dep)

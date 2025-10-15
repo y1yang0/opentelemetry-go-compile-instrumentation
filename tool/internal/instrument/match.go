@@ -6,7 +6,6 @@ package instrument
 import (
 	"encoding/json"
 	"os"
-	"strings"
 
 	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/ex"
 	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/internal/rule"
@@ -15,45 +14,33 @@ import (
 
 // load loads the matched rules from the build temp directory.
 // TODO: Shared memory across all sub-processes is possible
-func (ip *InstrumentPhase) load() ([]*rule.InstFuncRule, error) {
+func (ip *InstrumentPhase) load() ([]*rule.InstRuleSet, error) {
 	f := util.GetMatchedRuleFile()
 	content, err := os.ReadFile(f)
 	if err != nil {
 		return nil, ex.Wrapf(err, "failed to read file %s", f)
 	}
-	if len(content) == 0 {
-		return nil, nil
+	rset := make([]*rule.InstRuleSet, 0)
+	err = json.Unmarshal(content, &rset)
+	if err != nil {
+		return nil, ex.Wrapf(err, "failed to unmarshal JSON")
 	}
 
-	rules := make([]*rule.InstFuncRule, 0)
-	err = json.Unmarshal(content, &rules)
-	if err != nil {
-		return nil, ex.Wrapf(err, "failed to unmarshal rules from file %s", f)
-	}
-	ip.Debug("Loaded matched rules", "rules", rules)
-	return rules, nil
+	ip.Debug("Load matched rule sets", "path", f)
+	return rset, nil
 }
 
 // match matches the rules with the compile command.
-func (ip *InstrumentPhase) match(args []string) ([]*rule.InstFuncRule, error) {
-	util.Assert(util.IsCompileCommand(strings.Join(args, " ")), "sanity check")
-	// Load matched hook rules from setup phase
-	rules, err := ip.load()
-	if err != nil {
-		return nil, err
-	}
-
-	ip.Debug("Matching rules", "args", args, "rules", rules)
-
-	// Check if the package is in the rules.
+func (ip *InstrumentPhase) match(allSet []*rule.InstRuleSet, args []string) *rule.InstRuleSet {
+	// One package can only be matched with one rule set, so it's safe to return
+	// the first matched rule set.
 	importPath := util.FindFlagValue(args, "-p")
 	util.Assert(importPath != "", "sanity check")
-	matchedRules := make([]*rule.InstFuncRule, 0)
-	for _, rule := range rules {
-		if rule.GetFuncImportPath() == importPath {
-			matchedRules = append(matchedRules, rule)
+	for _, rset := range allSet {
+		if rset.ModulePath == importPath {
+			ip.Debug("Match rule set", "set", rset)
+			return rset
 		}
 	}
-	ip.Debug("Matched rules", "matchedRules", matchedRules)
-	return matchedRules, nil
+	return nil
 }
