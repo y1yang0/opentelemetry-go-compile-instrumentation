@@ -57,18 +57,11 @@ func FindFuncDecl(root *dst.File, funcName string, recv string) *dst.FuncDecl {
 		// Receiver type is specified, Match both func name and receiver type
 		switch recvTypeExpr := funcDecl.Recv.List[0].Type.(type) {
 		case *dst.StarExpr: // func (*Recv)T
- tn, ok := recvTypeExpr.X.(*dst.Ident)
-  if !ok {
-      // This is a generic type, we don't support it yet
-      return false
-  }
-  t := "*" + tn.Name
-  return t == recv
+			tn, ok := recvTypeExpr.X.(*dst.Ident)
+			if !ok {
 				// This is a generic type, we don't support it yet
 				return false
 			}
-			tn, ok := recvTypeExpr.X.(*dst.Ident)
-			util.Assert(ok, "must be Ident")
 			t := "*" + tn.Name
 			return t == recv
 		case *dst.Ident: // func (Recv)T
