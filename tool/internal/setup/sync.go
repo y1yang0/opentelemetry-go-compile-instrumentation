@@ -71,6 +71,9 @@ func (sp *SetupPhase) syncDeps(ctx context.Context, matched []*rule.InstRuleSet)
 		return nil
 	}
 
+	// In a matching rule, such as InstFuncRule, the hook code is defined in a
+	// separate module. Since this module is local, we need to add a replace
+	// directive in go.mod to point the module name to its local path.
 	const goModFile = "go.mod"
 	modfile, err := parseGoMod(goModFile)
 	if err != nil {
@@ -83,29 +86,31 @@ func (sp *SetupPhase) syncDeps(ctx context.Context, matched []*rule.InstRuleSet)
 		// TODO: Since we haven't published the instrumentation packages yet,
 		// we need to add the replace directive to the local path.
 		// Once the instrumentation packages are published, we can remove this.
-		replacePath := m.Path
-		replacePath = strings.TrimPrefix(replacePath, util.OtelRoot)
-		replacePath = filepath.Join("..", replacePath)
-		added, addErr := addReplace(modfile, m.Path, "", replacePath, "")
+		oldPath := m.Path
+		newPath := strings.TrimPrefix(m.Path, util.OtelRoot)
+		newPath = filepath.Join(util.GetBuildTempDir(), newPath)
+		added, addErr := addReplace(modfile, oldPath, "", newPath, "")
 		if addErr != nil {
 			return addErr
 		}
 		changed = changed || added
 		if changed {
-			sp.Info("Synced dependency", "dep", m.String())
+			sp.Info("Replace dependency", "old", m.Path, "new", newPath)
 		}
 	}
 	// TODO: Since we haven't published the pkg packages yet, we need to add the
 	// replace directive to the local path. Once the pkg packages are published,
 	// we can remove this.
 	// Add special pkg module to go.mod
-	added, addErr := addReplace(modfile, util.OtelRoot+"/pkg", "", "../pkg", "")
+	oldPath := util.OtelRoot + "/pkg"
+	newPath := filepath.Join(util.GetBuildTempDir(), "pkg")
+	added, addErr := addReplace(modfile, oldPath, "", newPath, "")
 	if addErr != nil {
 		return addErr
 	}
 	changed = changed || added
 	if changed {
-		sp.Info("Synced dependency", "dep", "pkg")
+		sp.Info("Replace dependency", "old", oldPath, "new", newPath)
 	}
 	if changed {
 		err = writeGoMod(goModFile, modfile)

@@ -66,6 +66,11 @@ func Setup(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	// Extract the embedded instrumentation modules into local directory
+	err = sp.extract()
+	if err != nil {
+		return err
+	}
 	// Sync new dependencies to go.mod or vendor/modules.txt
 	err = sp.syncDeps(ctx, matched)
 	if err != nil {
@@ -73,11 +78,6 @@ func Setup(ctx context.Context) error {
 	}
 	// Write the matched hook to matched.txt for further instrument phase
 	err = sp.store(matched)
-	if err != nil {
-		return err
-	}
-	// Extract the embedded instrumentation modules into local directory
-	err = sp.extract()
 	if err != nil {
 		return err
 	}
