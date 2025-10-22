@@ -103,8 +103,8 @@ func runMatch(dependency *Dependency, availableRules []rule.InstRule) (*rule.Ins
 			// Let's match with the rule precisely
 			switch rt := available.(type) {
 			case *rule.InstFuncRule:
-				funcDecl := ast.FindFuncDecl(tree, rt.Func)
-				if len(funcDecl) > 0 {
+				funcDecl := ast.FindFuncDecl(tree, rt.Func, rt.Recv)
+				if funcDecl != nil {
 					// Okay, this function is the one we want to instrument
 					// record the name of the rule that matches this function
 					set.AddFuncRule(source, rt)
