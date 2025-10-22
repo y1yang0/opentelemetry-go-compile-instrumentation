@@ -87,7 +87,7 @@ func (sp *SetupPhase) syncDeps(ctx context.Context, matched []*rule.InstRuleSet)
 		// we need to add the replace directive to the local path.
 		// Once the instrumentation packages are published, we can remove this.
 		oldPath := m.Path
-		newPath := strings.TrimPrefix(m.Path, util.OtelRoot)
+		newPath := strings.TrimPrefix(oldPath, util.OtelRoot)
 		newPath = filepath.Join(util.GetBuildTempDir(), newPath)
 		added, addErr := addReplace(modfile, oldPath, "", newPath, "")
 		if addErr != nil {
