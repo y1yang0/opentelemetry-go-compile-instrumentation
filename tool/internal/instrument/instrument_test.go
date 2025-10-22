@@ -140,6 +140,17 @@ func createTestRuleJSON(t *testing.T, path string) ([]byte, error) {
 						Before: "MyHookBefore",
 						After:  "MyHookAfter",
 					},
+					{
+						InstBaseRule: rule.InstBaseRule{
+							Name:   "hook_helloworld1",
+							Target: "main",
+						},
+						Path:   path,
+						Func:   "Example",
+						Recv:   "*MyStruct",
+						Before: "MyHook1Before",
+						After:  "MyHook1After",
+					},
 				},
 			},
 			StructRules: map[string][]*rule.InstStructRule{
