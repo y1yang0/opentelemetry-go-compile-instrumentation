@@ -95,7 +95,7 @@ func (sp *SetupPhase) syncDeps(ctx context.Context, matched []*rule.InstRuleSet)
 		}
 		changed = changed || added
 		if changed {
-			sp.Info("Replace dependency", "old", m.Path, "new", newPath)
+			sp.Info("Replace dependency", "old", oldPath, "new", newPath)
 		}
 	}
 	// TODO: Since we haven't published the pkg packages yet, we need to add the
