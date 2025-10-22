@@ -14,9 +14,6 @@ package rule
 //		recv: "*RecvType"
 //		before: "Foo"
 //		path: "github.com/foo/bar/hook_rule"
-//
-// The rule will be matched against the target function and the hook function
-// will be injected at the appropriate location.
 type InstFuncRule struct {
 	InstBaseRule
 	Func   string `json:"func"   yaml:"func"`   // The name of the target func to be instrumented

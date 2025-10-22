@@ -19,12 +19,7 @@ import (
 )
 
 const (
-	threeBackDir       = "../../.."
-	mainGoFile         = threeBackDir + "/demo/main.go"
-	pkgDir             = "/pkg/instrumentation/helloworld"
-	otelHelloWorldPath = "github.com/open-telemetry/opentelemetry-go-compile-instrumentation/pkg/instrumentation/helloworld"
-	matchedJSONFile    = "matched.json"
-	mainPkgDir         = "b001"
+	matchedJSONFile = "matched.json"
 )
 
 func findGoToolCompile() string {
@@ -65,6 +60,8 @@ func TestInstrument(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 			}
+			// TODO: Link the instrumented binary and run it and further check
+			// output content
 		})
 	}
 }
@@ -73,41 +70,28 @@ func setupTestEnvironment(t *testing.T) string {
 	tempDir := t.TempDir()
 	t.Setenv(util.EnvOtelWorkDir, tempDir)
 
-	// Create necessary directories
-	buildDir := filepath.Join(tempDir, util.BuildTempDir)
-	mainPkgPath := filepath.Join(buildDir, mainPkgDir)
-	err := os.MkdirAll(mainPkgPath, 0o755)
+	// Create source code file
+	mainGoFile := filepath.Join(tempDir, "main.go")
+	err := os.MkdirAll(filepath.Dir(mainGoFile), 0o755)
 	require.NoError(t, err)
-
-	// Copy instrumentation package files
-	workdir, err := os.Getwd()
+	err = util.CopyFile(filepath.Join("testdata", "source.go"), mainGoFile)
 	require.NoError(t, err)
-	srcPkgPath := filepath.Join(workdir, threeBackDir, strings.TrimPrefix(pkgDir, "/"))
-	dstPkgPath := filepath.Join(buildDir, strings.TrimPrefix(pkgDir, "/"))
-
-	// Create destination directory first
-	err = os.MkdirAll(filepath.Dir(dstPkgPath), 0o755)
-	require.NoError(t, err)
-
-	// Check if source exists before copying
-	if _, err = os.Stat(srcPkgPath); err == nil {
-		err = os.CopyFS(dstPkgPath, os.DirFS(srcPkgPath))
-		require.NoError(t, err)
-	}
 
 	// Create matched.json with test rules
-	matchedJSON, err := createTestRuleJSON(t, otelHelloWorldPath)
+	matchedJSON, err := createTestRuleJSON(mainGoFile)
 	require.NoError(t, err)
-	matchedFile := filepath.Join(buildDir, matchedJSONFile)
-	err = os.WriteFile(matchedFile, matchedJSON, 0o644)
+	matchedFile := filepath.Join(tempDir, util.BuildTempDir, matchedJSONFile)
+	err = os.MkdirAll(filepath.Dir(matchedFile), 0o755)
+	require.NoError(t, err)
+	err = util.WriteFile(matchedFile, string(matchedJSON))
 	require.NoError(t, err)
 
 	return tempDir
 }
 
 func createCompileArgs(tempDir string) []string {
-	buildDir := filepath.Join(tempDir, util.BuildTempDir)
-	outputPath := filepath.Join(buildDir, mainPkgDir, "_pkg_.a")
+	sourcePath := filepath.Join(tempDir, "main.go")
+	outputPath := filepath.Join(tempDir, "_pkg_.a")
 	compilePath := findGoToolCompile()
 
 	return []string{
@@ -117,53 +101,86 @@ func createCompileArgs(tempDir string) []string {
 		"-complete",
 		"-buildid", "foo/bar",
 		"-pack",
-		mainGoFile,
+		sourcePath,
 	}
 }
 
-func createTestRuleJSON(t *testing.T, path string) ([]byte, error) {
-	absMainGoFile, err := filepath.Abs(mainGoFile)
-	require.NoError(t, err)
+func createTestRuleJSON(mainGoFile string) ([]byte, error) {
 	ruleSet := []*rule.InstRuleSet{
 		{
 			PackageName: "main",
 			ModulePath:  "main",
 			FuncRules: map[string][]*rule.InstFuncRule{
-				absMainGoFile: {
+				mainGoFile: {
 					{
 						InstBaseRule: rule.InstBaseRule{
-							Name:   "hook_helloworld",
+							Name:   "hook_func",
 							Target: "main",
 						},
-						Path:   path,
-						Func:   "Example",
-						Before: "MyHookBefore",
-						After:  "MyHookAfter",
+						Path:   filepath.Join(".", "testdata"),
+						Func:   "Func1",
+						Before: "H1Before",
+						After:  "H1After",
 					},
 					{
 						InstBaseRule: rule.InstBaseRule{
-							Name:   "hook_helloworld1",
+							Name:   "hook_same_func",
 							Target: "main",
 						},
-						Path:   path,
-						Func:   "Example",
-						Recv:   "*MyStruct",
-						Before: "MyHook1Before",
-						After:  "MyHook1After",
+						Path:   filepath.Join(".", "testdata"),
+						Func:   "Func1",
+						Before: "H2Before",
+						After:  "H2After",
+					},
+					{
+						InstBaseRule: rule.InstBaseRule{
+							Name:   "hook_func_with_recv",
+							Target: "main",
+						},
+						Path:   filepath.Join(".", "testdata"),
+						Func:   "Func1",
+						Recv:   "*T",
+						Before: "H3Before",
+					},
+				},
+			},
+			RawRules: map[string][]*rule.InstRawRule{
+				mainGoFile: {
+					{
+						InstBaseRule: rule.InstBaseRule{
+							Name:   "add_raw_code",
+							Target: "main",
+						},
+						Func: "Func1",
+						Raw:  "func2()",
 					},
 				},
 			},
 			StructRules: map[string][]*rule.InstStructRule{
-				absMainGoFile: {
+				mainGoFile: {
 					{
 						InstBaseRule: rule.InstBaseRule{
 							Name:   "add_new_field",
 							Target: "main",
 						},
-						Struct:    "MyStruct",
-						FieldName: "NewField",
-						FieldType: "string",
+						Struct: "T",
+						NewField: []*rule.InstStructField{
+							{
+								Name: "NewField",
+								Type: "string",
+							},
+						},
 					},
+				},
+			},
+			FileRules: []*rule.InstFileRule{
+				{
+					InstBaseRule: rule.InstBaseRule{
+						Name:   "add_new_file",
+						Target: "main",
+					},
+					File: "newfile.go",
+					Path: filepath.Join(".", "testdata"),
 				},
 			},
 		},
