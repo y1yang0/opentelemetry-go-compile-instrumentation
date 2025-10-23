@@ -70,6 +70,7 @@ func stripCompleteFlag(args []string) []string {
 }
 
 func interceptCompile(ctx context.Context, args []string) ([]string, error) {
+	util.Assert(util.IsCompileCommand(strings.Join(args, " ")), "sanity check")
 	// Read compilation output directory
 	target := util.FindFlagValue(args, "-o")
 	util.Assert(target != "", "missing -o flag value")
@@ -77,10 +78,8 @@ func interceptCompile(ctx context.Context, args []string) ([]string, error) {
 		logger:      util.LoggerFromContext(ctx),
 		workDir:     filepath.Dir(target),
 		compileArgs: args,
-		packageName: util.FindFlagValue(args, "-p"),
 	}
 
-	util.Assert(util.IsCompileCommand(strings.Join(args, " ")), "sanity check")
 	// Load matched hook rules from setup phase
 	allSet, err := ip.load()
 	if err != nil {
@@ -100,11 +99,9 @@ func interceptCompile(ctx context.Context, args []string) ([]string, error) {
 		// Strip -complete flag as we may insert some hook points that are
 		// not ready yet, i.e. they don't have function body
 		ip.compileArgs = stripCompleteFlag(ip.compileArgs)
+		ip.Info("Run instrumented command", "args", ip.compileArgs)
 	}
 
-	// Run the instrumented compile command
-	ip.Info("Run instrumented compile command",
-		"args", strings.Join(ip.compileArgs, " "))
 	return ip.compileArgs, nil
 }
 

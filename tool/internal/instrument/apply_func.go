@@ -295,6 +295,7 @@ func (ip *InstrumentPhase) parseFile(file string) (*dst.File, error) {
 		return nil, err
 	}
 	ip.target = root
+	ip.packageName = root.Name.Name
 	return root, nil
 }
 

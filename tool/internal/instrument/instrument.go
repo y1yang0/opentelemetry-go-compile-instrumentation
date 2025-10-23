@@ -81,7 +81,7 @@ func (ip *InstrumentPhase) instrument(rset *rule.InstRuleSet) error {
 	// Write globals file if any function is instrumented because injected code
 	// always requires some global variables and auxiliary declarations
 	if hasFuncRule {
-		return ip.writeGlobals(ip.packageName)
+		return ip.writeGlobals(rset.PackageName)
 	}
 	return nil
 }

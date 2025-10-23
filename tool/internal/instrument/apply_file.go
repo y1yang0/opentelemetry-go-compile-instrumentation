@@ -5,7 +5,6 @@ package instrument
 
 import (
 	"fmt"
-	"go/parser"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -48,8 +47,7 @@ func (ip *InstrumentPhase) applyFileRule(rule *rule.InstFileRule) error {
 	file := files[index]
 
 	// Parse the new file into AST nodes and modify it as needed
-	p := ast.NewAstParser()
-	root, err := p.Parse(file, parser.ParseComments)
+	root, err := ip.parseFile(file)
 	if err != nil {
 		return err
 	}
