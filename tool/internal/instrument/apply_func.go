@@ -295,7 +295,6 @@ func (ip *InstrumentPhase) parseFile(file string) (*dst.File, error) {
 		return nil, err
 	}
 	ip.target = root
-	ip.packageName = root.Name.Name
 	return root, nil
 }
 
@@ -306,7 +305,7 @@ func (ip *InstrumentPhase) applyFuncRule(rule *rule.InstFuncRule, root *dst.File
 		return ex.Newf("can not find function %s", rule.Func)
 	}
 
-	ip.rawFunc = funcDecl
+	ip.targetFunc = funcDecl
 	err := ip.insertTJump(rule, funcDecl)
 	if err != nil {
 		return err

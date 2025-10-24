@@ -16,8 +16,6 @@ import (
 
 type InstrumentPhase struct {
 	logger *slog.Logger
-	// The package name of the target file
-	packageName string
 	// The working directory during compilation
 	workDir string
 	// The target file to be instrumented
@@ -27,7 +25,7 @@ type InstrumentPhase struct {
 	// The compiling arguments for the target file
 	compileArgs []string
 	// The target function to be instrumented
-	rawFunc *dst.FuncDecl
+	targetFunc *dst.FuncDecl
 	// The enter hook function, it should be inserted into the target source file
 	beforeHookFunc *dst.FuncDecl
 	// The exit hook function, it should be inserted into the target source file
@@ -47,13 +45,13 @@ func (ip *InstrumentPhase) Debug(msg string, args ...any) { ip.logger.Debug(msg,
 
 // keepForDebug keeps the the file to .otel-build directory for debugging
 func (ip *InstrumentPhase) keepForDebug(name string) {
-	util.Assert(ip.packageName != "", "sanity check")
 	escape := func(s string) string {
 		dirName := strings.ReplaceAll(s, "/", "_")
 		dirName = strings.ReplaceAll(dirName, ".", "_")
 		return dirName
 	}
-	dest := filepath.Join("debug", escape(ip.packageName), filepath.Base(name))
+	modPath := util.FindFlagValue(ip.compileArgs, "-p")
+	dest := filepath.Join("debug", escape(modPath), filepath.Base(name))
 	err := util.CopyFile(name, util.GetBuildTemp(dest))
 	if err != nil { // error is tolerable here as this is only for debugging
 		ip.Warn("failed to save modified file", "dest", dest, "error", err)

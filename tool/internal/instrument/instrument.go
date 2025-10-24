@@ -33,7 +33,7 @@ func (ip *InstrumentPhase) instrument(rset *rule.InstRuleSet) error {
 	// Apply file rules first because they can introduce new files that used
 	// by other rules such as raw rules
 	for _, rule := range rset.FileRules {
-		err := ip.applyFileRule(rule)
+		err := ip.applyFileRule(rule, rset.PackageName)
 		if err != nil {
 			return err
 		}
