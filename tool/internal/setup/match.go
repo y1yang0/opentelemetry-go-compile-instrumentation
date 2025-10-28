@@ -154,7 +154,7 @@ func (sp *SetupPhase) runMatch(dependency *Dependency, allRules []rule.InstRule)
 	}
 	// Precise matching
 	for _, source := range dependency.Sources {
-		// Passe the source code. Since the only purpose here is to match,
+		// Parse the source code. Since the only purpose here is to match,
 		// no node updates, we can use fast variant.
 		tree, err := ast.ParseFileFast(source)
 		if err != nil {

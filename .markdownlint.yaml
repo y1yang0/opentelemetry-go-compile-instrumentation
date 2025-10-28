@@ -27,3 +27,6 @@ MD033: false
 
 # fenced-code-language
 MD040: false
+
+# first-line-heading
+MD041: false

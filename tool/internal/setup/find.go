@@ -62,10 +62,10 @@ func findCompileCommands(buildPlanLog *os.File) ([]string, error) {
 // listBuildPlan lists the build plan by running `go build/install -a -x -n`
 // and then filtering the compile commands from the build plan log.
 func (sp *SetupPhase) listBuildPlan(ctx context.Context, goBuildCmd []string) ([]string, error) {
-	const goBuildCmdMinLen = 1 // build/install + at least one argument
+	const goBuildMinArgs = 2 // go build
 	const buildPlanLogName = "build-plan.log"
 
-	util.Assert(len(goBuildCmd) >= goBuildCmdMinLen, "at least one argument is required")
+	util.Assert(len(goBuildCmd) >= goBuildMinArgs, "at least one argument is required")
 	util.Assert(goBuildCmd[1] == "build" || goBuildCmd[1] == "install", "sanity check")
 
 	// Create a build plan log file in the temporary directory
@@ -76,10 +76,12 @@ func (sp *SetupPhase) listBuildPlan(ctx context.Context, goBuildCmd []string) ([
 	defer buildPlanLog.Close()
 	// The full build command is: "go build/install -a -x -n  {...}"
 	args := []string{}
-	args = append(args, goBuildCmd[:2]...)             // go build/install
-	args = append(args, []string{"-a", "-x", "-n"}...) // -a -x -n
-	args = append(args, goBuildCmd[2:]...)             // {...} remaining
-	sp.Info("List build plan", "args", args)
+	args = append(args, goBuildCmd[:goBuildMinArgs]...) // go build/install
+	args = append(args, []string{"-a", "-x", "-n"}...)  // -a -x -n
+	if len(goBuildCmd) > goBuildMinArgs {               // {...} remaining
+		args = append(args, goBuildCmd[goBuildMinArgs:]...)
+	}
+	sp.Info("New build command", "new", args, "old", goBuildCmd)
 
 	//nolint:gosec // Command arguments are validated with above assertions
 	cmd := exec.CommandContext(ctx, args[0], args[1:]...)
@@ -105,9 +107,10 @@ func (sp *SetupPhase) listBuildPlan(ctx context.Context, goBuildCmd []string) ([
 	return compileCmds, nil
 }
 
+var versionRegexp = regexp.MustCompile(`@v\d+\.\d+\.\d+(-.*?)?/`)
+
 func findModVersion(path string) string {
 	path = filepath.ToSlash(path) // Unify the path to Unix style
-	versionRegexp := regexp.MustCompile(`@v\d+\.\d+\.\d+(-.*?)?/`)
 	version := versionRegexp.FindString(path)
 	if version == "" {
 		return ""
