@@ -84,6 +84,7 @@ This rule injects a string of raw Go code at the beginning of a target function.
 - Injecting complex logic that cannot be expressed with a simple function call.
 - Quick and dirty debugging or logging.
 - Prototyping new instrumentation strategies.
+- Custom instrumentation for traces and metrics.
 
 **Fields:**
 
