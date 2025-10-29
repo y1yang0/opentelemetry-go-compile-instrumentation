@@ -12,7 +12,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func RunCmd(dir string, args ...string) (string, error) {
+// -----------------------------------------------------------------------------
+// E2E Test Infrastructure
+// This infrastructure is used to actually build the application, execute the
+// compiled binary program, and verify that the output of the binary program
+// is as expected.
+
+func runCmd(dir string, args ...string) (string, error) {
 	path := args[0]
 	args = args[1:]
 	cmd := exec.Command(path, args...)
@@ -24,19 +30,21 @@ func RunCmd(dir string, args ...string) (string, error) {
 	return string(output), nil
 }
 
-func RunInstrument(t *testing.T, appDir string, args ...string) {
+// BuildApp builds the application with the instrumentation tool.
+func BuildApp(t *testing.T, appDir string, args ...string) {
 	binName := "otel"
 	if util.IsWindows() {
 		binName += ".exe"
 	}
 	otelPath := filepath.Join("..", "..", binName)
 	args = append([]string{otelPath}, args...)
-	out, err := RunCmd(appDir, args...)
+	out, err := runCmd(appDir, args...)
 	require.NoError(t, err, out)
 }
 
+// RunApp runs the application and returns the output.
 func RunApp(t *testing.T, dir string) string {
-	out, err := RunCmd(dir, "./"+filepath.Base(dir))
+	out, err := runCmd(dir, "./"+filepath.Base(dir))
 	require.NoError(t, err, out)
 	return out
 }

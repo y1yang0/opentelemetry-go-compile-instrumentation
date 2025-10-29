@@ -13,7 +13,7 @@ import (
 func TestBasic(t *testing.T) {
 	appDir := filepath.Join("..", "demo", "basic")
 
-	RunInstrument(t, appDir, "go", "build", "-a")
+	BuildApp(t, appDir, "go", "build", "-a")
 	output := RunApp(t, appDir)
 	expect := []string{
 		"Every is called",
