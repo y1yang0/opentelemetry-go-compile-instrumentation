@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/ex"
@@ -61,10 +62,10 @@ func findCompileCommands(buildPlanLog *os.File) ([]string, error) {
 // listBuildPlan lists the build plan by running `go build/install -a -x -n`
 // and then filtering the compile commands from the build plan log.
 func (sp *SetupPhase) listBuildPlan(ctx context.Context, goBuildCmd []string) ([]string, error) {
-	const goBuildCmdMinLen = 1 // build/install + at least one argument
+	const goBuildMinArgs = 2 // go build
 	const buildPlanLogName = "build-plan.log"
 
-	util.Assert(len(goBuildCmd) >= goBuildCmdMinLen, "at least one argument is required")
+	util.Assert(len(goBuildCmd) >= goBuildMinArgs, "at least one argument is required")
 	util.Assert(goBuildCmd[1] == "build" || goBuildCmd[1] == "install", "sanity check")
 
 	// Create a build plan log file in the temporary directory
@@ -75,10 +76,12 @@ func (sp *SetupPhase) listBuildPlan(ctx context.Context, goBuildCmd []string) ([
 	defer buildPlanLog.Close()
 	// The full build command is: "go build/install -a -x -n  {...}"
 	args := []string{}
-	args = append(args, goBuildCmd[:2]...)             // go build/install
-	args = append(args, []string{"-a", "-x", "-n"}...) // -a -x -n
-	args = append(args, goBuildCmd[2:]...)             // {...} remaining
-	sp.Info("List build plan", "args", args)
+	args = append(args, goBuildCmd[:goBuildMinArgs]...) // go build/install
+	args = append(args, []string{"-a", "-x", "-n"}...)  // -a -x -n
+	if len(goBuildCmd) > goBuildMinArgs {               // {...} remaining
+		args = append(args, goBuildCmd[goBuildMinArgs:]...)
+	}
+	sp.Info("New build command", "new", args, "old", goBuildCmd)
 
 	//nolint:gosec // Command arguments are validated with above assertions
 	cmd := exec.CommandContext(ctx, args[0], args[1:]...)
@@ -104,6 +107,18 @@ func (sp *SetupPhase) listBuildPlan(ctx context.Context, goBuildCmd []string) ([
 	return compileCmds, nil
 }
 
+var versionRegexp = regexp.MustCompile(`@v\d+\.\d+\.\d+(-.*?)?/`)
+
+func findModVersion(path string) string {
+	path = filepath.ToSlash(path) // Unify the path to Unix style
+	version := versionRegexp.FindString(path)
+	if version == "" {
+		return ""
+	}
+	// Extract version number from the string
+	return version[1 : len(version)-1]
+}
+
 // findDeps finds the dependencies of the project by listing the build plan.
 func (sp *SetupPhase) findDeps(ctx context.Context, goBuildCmd []string) ([]*Dependency, error) {
 	buildPlan, err := sp.listBuildPlan(ctx, goBuildCmd)
@@ -114,23 +129,18 @@ func (sp *SetupPhase) findDeps(ctx context.Context, goBuildCmd []string) ([]*Dep
 	deps := make([]*Dependency, 0)
 	for _, plan := range buildPlan {
 		util.Assert(util.IsCompileCommand(plan), "must be compile command")
-		// Find the compiling package name
+		dep := &Dependency{
+			ImportPath: "",
+			Sources:    make([]string, 0),
+		}
+
+		// Find the compiling package name as dependency import path
 		args := util.SplitCompileCmds(plan)
 		importPath := util.FindFlagValue(args, "-p")
 		util.Assert(importPath != "", "import path is empty")
-		exist := false
-		dep := &Dependency{
-			ImportPath: importPath,
-			Sources:    make([]string, 0),
-		}
-		for _, d := range deps {
-			if d.ImportPath == importPath {
-				exist = true
-				break
-			}
-		}
-		util.Assert(!exist, "import path should not be duplicated")
-		// Find the go files belong to the package
+		dep.ImportPath = importPath
+
+		// Find the go files belong to the package as dependency sources
 		for _, arg := range args {
 			if util.IsGoFile(arg) {
 				abs, err1 := filepath.Abs(arg)
@@ -140,6 +150,11 @@ func (sp *SetupPhase) findDeps(ctx context.Context, goBuildCmd []string) ([]*Dep
 				dep.Sources = append(dep.Sources, abs)
 			}
 		}
+		// Extract the version from the source file path if available
+		if len(dep.Sources) > 0 {
+			dep.Version = findModVersion(dep.Sources[0])
+		}
+
 		deps = append(deps, dep)
 		sp.Info("Found dependency", "dep", dep)
 	}

@@ -172,6 +172,8 @@ func (ip *InstrumentPhase) insertToFunc(funcDecl *dst.FuncDecl, tjump *dst.IfStm
 
 func (ip *InstrumentPhase) insertTJump(t *rule.InstFuncRule, funcDecl *dst.FuncDecl) error {
 	util.Assert(t.Before != "" || t.After != "", "sanity check")
+	// Record the target function for the whole trampoline creation process
+	ip.targetFunc = funcDecl
 
 	// Collect return values for the trampoline function
 	retVals := collectReturnValues(funcDecl)
@@ -305,7 +307,6 @@ func (ip *InstrumentPhase) applyFuncRule(rule *rule.InstFuncRule, root *dst.File
 		return ex.Newf("can not find function %s", rule.Func)
 	}
 
-	ip.rawFunc = funcDecl
 	err := ip.insertTJump(rule, funcDecl)
 	if err != nil {
 		return err

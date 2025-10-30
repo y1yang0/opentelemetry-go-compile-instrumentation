@@ -99,13 +99,17 @@ func BuildWithToolexec(ctx context.Context, args []string) error {
 	newArgs := make([]string, 0, len(args)+additionalCount) // Avoid in-place modification
 	// Add "go build"
 	newArgs = append(newArgs, "go")
-	newArgs = append(newArgs, args[:2]...)
+	newArgs = append(newArgs, args[:1]...)
 	// Add "-work" to give us a chance to debug instrumented code if needed
 	newArgs = append(newArgs, "-work")
 	// Add "-toolexec=..."
 	newArgs = append(newArgs, insert)
+	// TODO: We should support incremental build in the future, so we don't need
+	// to force rebuild here.
+	// Add "-a" to force rebuild
+	newArgs = append(newArgs, "-a")
 	// Add the rest
-	newArgs = append(newArgs, args[2:]...)
+	newArgs = append(newArgs, args[1:]...)
 	logger.InfoContext(ctx, "Running go build with toolexec", "args", newArgs)
 
 	// Tell the sub-process the working directory
