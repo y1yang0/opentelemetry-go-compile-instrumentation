@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 
-	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/ex"
 	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/internal/setup"
 	"github.com/urfave/cli/v3"
 )
@@ -17,10 +16,6 @@ var commandSetup = cli.Command{
 	Description: "Set up the environment for instrumentation",
 	Before:      addLoggerPhaseAttribute,
 	Action: func(ctx context.Context, _ *cli.Command) error {
-		err := setup.Setup(ctx)
-		if err != nil {
-			return ex.Wrapf(err, "failed to setup with exit code %d", exitCodeFailure)
-		}
-		return nil
+		return setup.Setup(ctx)
 	},
 }

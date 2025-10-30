@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 
-	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/ex"
 	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/internal/instrument"
 	"github.com/urfave/cli/v3"
 )
@@ -19,10 +18,6 @@ var commandToolexec = cli.Command{
 	Hidden:          true,
 	Before:          addLoggerPhaseAttribute,
 	Action: func(ctx context.Context, cmd *cli.Command) error {
-		err := instrument.Toolexec(ctx, cmd.Args().Slice())
-		if err != nil {
-			return ex.Wrapf(err, "failed to run toolexec with exit code %d", exitCodeFailure)
-		}
-		return nil
+		return instrument.Toolexec(ctx, cmd.Args().Slice())
 	},
 }

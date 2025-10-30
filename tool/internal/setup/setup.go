@@ -14,6 +14,10 @@ import (
 	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/util"
 )
 
+const (
+	goCacheDir = "gocache"
+)
+
 type SetupPhase struct {
 	logger *slog.Logger
 }
@@ -89,7 +93,7 @@ func Setup(ctx context.Context) error {
 func BuildWithToolexec(ctx context.Context, args []string) error {
 	logger := util.LoggerFromContext(ctx)
 
-	// Add -toolexec=otel to the original build command and run it
+	// Add -toolexec=otel to the original build command
 	execPath, err := os.Executable()
 	if err != nil {
 		return ex.Wrapf(err, "failed to get executable path")
@@ -110,13 +114,46 @@ func BuildWithToolexec(ctx context.Context, args []string) error {
 	newArgs = append(newArgs, "-a")
 	// Add the rest
 	newArgs = append(newArgs, args[1:]...)
-	logger.InfoContext(ctx, "Running go build with toolexec", "args", newArgs)
+	logger.InfoContext(ctx, "Build with toolexec", "args", newArgs)
 
-	// Tell the sub-process the working directory
+	// Assemble the environment variables
 	env := os.Environ()
 	pwd := util.GetOtelWorkDir()
 	util.Assert(pwd != "", "invalid working directory")
+	// Add the working directory because sub-process should know where we are
+	// going to build
 	env = append(env, fmt.Sprintf("%s=%s", util.EnvOtelWorkDir, pwd))
+	goCachePath, err := filepath.Abs(util.GetBuildTemp(goCacheDir))
+	if err != nil {
+		return err
+	}
+	// Add the temp go cache to prevent the instrumented code from using the
+	// global go cache and polluting it.
+	env = append(env, fmt.Sprintf("GOCACHE=%s", goCachePath))
+	logger.InfoContext(ctx, "Build with tolexec", "env", env)
 
+	// Good, run the build command with the toolexec mode
 	return util.RunCmdWithEnv(ctx, env, newArgs...)
+}
+
+func cleanup(backupFiles []string) {
+	_ = os.RemoveAll(OtelRuntimeFile)
+	_ = util.RestoreFile(backupFiles)
+	_ = os.RemoveAll(util.GetBuildTemp(goCacheDir))
+}
+
+func GoBuild(ctx context.Context, args []string) error {
+	backupFiles := []string{"go.mod", "go.sum", "go.work", "go.work.sum"}
+	_ = util.BackupFile(backupFiles)
+	defer cleanup(backupFiles)
+
+	err := Setup(ctx)
+	if err != nil {
+		return err
+	}
+	err = BuildWithToolexec(ctx, args)
+	if err != nil {
+		return err
+	}
+	return nil
 }
