@@ -17,11 +17,11 @@ It modifies the Go build process to inject OpenTelemetry code into the applicati
 
 Highlights:
 
-- **🚀 Zero Runtime Overhead** - Instrumentation is baked into your binary at compile time
-- **🔧 Zero Code Changes** - Automatically instrument entire applications and dependencies
-- **📚 Third-Party Library Support** - Instrument libraries you don't control
-- **🎯 Complete Decoupling** - Keep your codebase free from instrumentation concerns
-- **⚡ Flexible Deployment** - Integrate at development time or in your CI/CD pipeline
+- **Zero Runtime Overhead** - Instrumentation is baked into your binary at compile time
+- **Zero Code Changes** - Automatically instrument entire applications and dependencies
+- **Third-Party Library Support** - Instrument libraries you don't control
+- **Complete Decoupling** - Keep your codebase free from instrumentation concerns
+- **Flexible Deployment** - Integrate at development time or in your CI/CD pipeline
 
 ## Quick Start
 
@@ -41,26 +41,26 @@ make test
 
 ## Community
 
-### 📚 Documentation
+### Documentation
 
 - [Getting Started Guide](./docs/getting-started.md) - Setup and usage
 - [UX Design](./docs/ux-design.md) - Configuration options
 - [Implementation Details](./docs/implementation.md) - Technical architecture
 - [API Design](./docs/api-design-and-project-structure.md) - API structure
 
-### 🎥 Video Talks
+### Video Talks
 
 - [Project Overview](https://www.youtube.com/watch?v=xEsVOhBdlZY)
 - [Deep Dive Details](https://www.youtube.com/watch?v=8Rw-fVEjihw&list=PLDWZ5uzn69ewrYyHTNrXlrWVDjLiOX0Yb&index=19)
 
-### 💬 Get Help
+### Get Help
 
 - [GitHub Discussions](https://github.com/open-telemetry/opentelemetry-go-compile-instrumentation/discussions) - Ask questions
 - [GitHub Issues](https://github.com/open-telemetry/opentelemetry-go-compile-instrumentation/issues) - Report bugs
 - [Slack Channel](https://cloud-native.slack.com/archives/C088D8GSSSF) - Real-time chat
 
-### 🤝 Contributing
+### Contributing
 
-We welcome contributions! See our [contributing guide](CONTRIBUTING.md) and [development docs](./docs/developing.md).
+We welcome contributions! See our [contributing guide](CONTRIBUTING.md) and [development docs](./docs/).
 
 This project follows the [OpenTelemetry Code of Conduct](https://github.com/open-telemetry/community/blob/main/code-of-conduct.md).
