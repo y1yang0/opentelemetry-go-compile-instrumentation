@@ -34,16 +34,19 @@ version_range:
   target: golang.org/x/time/rate
   version: "v0.11.0,v0.12.0"
   func: Every
-  raw: "println(\"Every1\")"
+  raw: |
+    println("Every1")
 
 version_min_bad:
   target: golang.org/x/time/rate
   version: "v0.12.0"
   func: Every
-  raw: "println(\"Every2\")"
+  raw: |
+    println("Every2")
 
 version_min_good:
   target: golang.org/x/time/rate
   version: "v0.11.0"
   func: Every
-  raw: "println(\"Every3\")"
+  raw: |
+    println("Every3")
