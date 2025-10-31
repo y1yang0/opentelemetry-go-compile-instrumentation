@@ -116,20 +116,24 @@ func matchTarget(dependency *Dependency, rule rule.InstRule) bool {
 }
 
 func matchVersion(dependency *Dependency, rule rule.InstRule) bool {
+	// No version specified, so it's always applicable
 	if rule.GetVersion() == "" {
-		return true // No version specified, so it's always applicable
+		return true
 	}
+
+	// Version range? i.e. "v0.11.0,v0.12.0"
 	ruleVersion := rule.GetVersion()
 	if strings.Contains(ruleVersion, ",") {
-		// Version range? i.e. "v0.11.0,v0.12.0"
 		commaIndex := strings.Index(ruleVersion, ",")
+		//nolint:gocritic // commaIndex is always valid
 		startInclusive := ruleVersion[:commaIndex]
 		endExclusive := ruleVersion[commaIndex+1:]
+		// Version is in the "inclusive,exclusive" range
 		if semver.Compare(dependency.Version, startInclusive) >= 0 &&
 			semver.Compare(dependency.Version, endExclusive) < 0 {
-			return true // Version is in the "inclusive,exclusive" range
+			return true
 		}
-		return false // Not applicable
+		return false
 	}
 	// Minimal version only? i.e. "v0.11.0"
 	return semver.Compare(dependency.Version, ruleVersion) >= 0
