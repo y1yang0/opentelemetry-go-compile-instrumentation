@@ -134,7 +134,7 @@ func populateHookContextLiteral(tjump *TJump, expr dst.Expr) {
 }
 
 // newHookContextImpl constructs a new HookContextImpl structure literal and
-// populatees its Params && ReturnValues field with addresses of all arguments.
+// populates its Params && ReturnValues field with addresses of all arguments.
 // The HookContextImpl structure is used to pass arguments to the exit trampoline
 func newHookContextImpl(tjump *TJump) (dst.Expr, error) {
 	// TODO: This generated structure construction can also be marked via line
