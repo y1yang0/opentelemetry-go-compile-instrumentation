@@ -593,8 +593,6 @@ func setReturnValClause(idx int, t dst.Expr) *dst.CaseClause {
 
 // desugarType desugars parameter type to its original type, if parameter
 // is type of ...T, it will be converted to []T
-//
-//nolint:ireturn // we dont know the type of the parameter
 func desugarType(param *dst.Field) dst.Expr {
 	if ft, ok := param.Type.(*dst.Ellipsis); ok {
 		return ast.ArrayType(ft.Elt)
