@@ -75,7 +75,7 @@ import (
 //	ctx,_ := otel_trampoline_before(&arg);
 //	defer otel_trampoline_after(ctx, &retval)
 //
-// Note that this optimization pass is fraigle as it really heavily depends on
+// Note that this optimization pass is fragile as it really heavily depends on
 // the structure of trampoline-jump-if and trampoline functions. Any change in
 // tjump should be carefully examined.
 
