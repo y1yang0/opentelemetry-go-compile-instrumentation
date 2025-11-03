@@ -32,7 +32,7 @@ type InstrumentPhase struct {
 	afterHookFunc *dst.FuncDecl
 	// Variable declarations waiting to be inserted into target source file
 	varDecls []dst.Decl
-	// The declaration of the hook context, it should be populateed later
+	// The declaration of the hook context, it should be populated later
 	hookCtxDecl *dst.GenDecl
 	// The methods of the hook context
 	hookCtxMethods []*dst.FuncDecl
