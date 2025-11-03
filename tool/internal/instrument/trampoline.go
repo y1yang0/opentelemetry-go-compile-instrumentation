@@ -453,7 +453,7 @@ func assignSliceLiteral(assignStmt *dst.AssignStmt, vals []dst.Expr) bool {
 	return false
 }
 
-// populateHookContext populatees the hook context before hook invocation
+// populateHookContext populates the hook context before hook invocation
 func (ip *InstrumentPhase) populateHookContext(before bool) bool {
 	funcDecl := ip.beforeHookFunc
 	if !before {
