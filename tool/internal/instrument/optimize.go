@@ -138,7 +138,7 @@ func newHookContextImpl(tjump *TJump) (dst.Expr, error) {
 	// TODO: This generated structure construction can also be marked via line
 	// directive
 	// One line please, otherwise debugging line number will be a nightmare
-	tmpl := fmt.Sprintf("&HookContextImpl%s{Params:[]interface{}{},ReturnVals:[]interface{}{}}",
+	tmpl := fmt.Sprintf("&HookContextImpl%s{params:[]interface{}{},returnVals:[]interface{}{}}",
 		util.CRC32(tjump.rule.String()))
 	p := ast.NewAstParser()
 	astRoot, err := p.ParseSnippet(tmpl)

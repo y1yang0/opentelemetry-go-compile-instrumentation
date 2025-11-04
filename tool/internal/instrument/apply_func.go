@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	tJumpLabel      = "/* TRAMPOLINE_JUMP_IF */"
+	tJumpLabel      = "/* __TRAMPOLINE_JUMP_IF__ */"
 	otelGlobalsFile = "otel.globals.go"
 )
 

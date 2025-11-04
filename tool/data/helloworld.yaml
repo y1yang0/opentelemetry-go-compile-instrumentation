@@ -6,7 +6,6 @@ hook_helloworld:
   target: main
   func: Example
   before: MyHookBefore
-  after: MyHookAfter
   path: "github.com/open-telemetry/opentelemetry-go-compile-instrumentation/pkg/instrumentation/helloworld"
 
 add_new_field:
@@ -34,3 +33,9 @@ hook_real_mod:
   version: "v0.11.0,v0.12.0"
   func: Every
   raw: "println(\"Every is called\")"
+
+only_after:
+  target: main
+  func: Example
+  after: MyHookAfter
+  path: "github.com/open-telemetry/opentelemetry-go-compile-instrumentation/pkg/instrumentation/helloworld"
