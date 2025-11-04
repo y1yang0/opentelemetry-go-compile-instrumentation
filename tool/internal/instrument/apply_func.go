@@ -303,7 +303,7 @@ func (ip *InstrumentPhase) parseFile(file string) (*dst.File, error) {
 	ip.target = root
 	// Every time we parse a file, we need to reset the trampoline jumps
 	// because they are associated with one certain file
-	ip.tjumps = make([]*TJump, 0)
+	ip.tjumps = ip.tjumps[:0]
 	return root, nil
 }
 
