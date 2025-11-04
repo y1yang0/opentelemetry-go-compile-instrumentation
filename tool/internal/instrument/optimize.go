@@ -100,7 +100,7 @@ func removeAfterTrampolineCall(tjump *TJump) error {
 		case *dst.DeferStmt:
 			// Replace defer statement with an empty statement
 			elseBlock.List[i] = ast.EmptyStmt()
-		case *dst.IfStmt:
+		case *dst.IfStmt, *dst.EmptyStmt:
 			// Expected statement type and do nothing
 		default:
 			util.ShouldNotReachHere()

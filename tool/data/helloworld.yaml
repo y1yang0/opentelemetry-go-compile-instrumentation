@@ -1,7 +1,6 @@
 # Copyright The OpenTelemetry Authors
 # SPDX-License-Identifier: Apache-2.0
 
-# Unique name of the hook rule
 hook_helloworld:
   target: main
   func: Example
@@ -18,7 +17,8 @@ add_new_field:
 raw_helloworld:
   target: main
   func: Example
-  raw: "go func(){ println(\"RawCode\") }()"
+  raw: |
+    go func(){ println("RawCode") }()
 
 hook_recv:
   target: main
@@ -28,11 +28,26 @@ hook_recv:
   after: MyHook1After
   path: "github.com/open-telemetry/opentelemetry-go-compile-instrumentation/pkg/instrumentation/helloworld"
 
-hook_real_mod:
+version_range:
   target: golang.org/x/time/rate
   version: "v0.11.0,v0.12.0"
   func: Every
-  raw: "println(\"Every is called\")"
+  raw: |
+    println("Every1")
+
+version_min_bad:
+  target: golang.org/x/time/rate
+  version: "v0.12.0"
+  func: Every
+  raw: |
+    println("Every2")
+
+version_min_good:
+  target: golang.org/x/time/rate
+  version: "v0.11.0"
+  func: Every
+  raw: |
+    println("Every3")
 
 only_after:
   target: main
