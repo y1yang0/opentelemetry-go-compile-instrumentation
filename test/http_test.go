@@ -15,12 +15,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func startServerAndWaitForReady(t *testing.T, serverApp *exec.Cmd, outputPipe io.ReadCloser, readyMsg string) func() string {
+func startServerAndWaitForReady(t *testing.T, serverApp *exec.Cmd, outputPipe io.ReadCloser) func() string {
 	t.Helper()
 
 	readyChan := make(chan struct{})
 	doneChan := make(chan struct{})
 	output := strings.Builder{}
+	const readyMsg = "server started"
 	go func() {
 		// Scan will return false when the application exits.
 		defer close(doneChan)
@@ -61,7 +62,7 @@ func TestHttp(t *testing.T) {
 
 	// Start the server and wait for it to be ready.
 	serverApp, outputPipe := StartApp(t, serverDir)
-	waitServerOutput := startServerAndWaitForReady(t, serverApp, outputPipe, "server started")
+	waitServerOutput := startServerAndWaitForReady(t, serverApp, outputPipe)
 
 	// Run the client, it will send a shutdown request to the server.
 	RunApp(t, clientDir, "-shutdown")

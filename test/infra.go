@@ -67,7 +67,7 @@ func StartApp(t *testing.T, dir string, args ...string) (*exec.Cmd, io.ReadClose
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		if cmd.Process != nil {
-			cmd.Process.Kill()
+			require.NoError(t, cmd.Process.Kill())
 		}
 	})
 	return cmd, stdout
