@@ -1,10 +1,13 @@
 # Copyright The OpenTelemetry Authors
 # SPDX-License-Identifier: Apache-2.0
 
+# Use bash for all shell commands (required for pipefail and other bash features)
+SHELL := /bin/bash
+
 .PHONY: all test test-unit test-integration format lint build install package clean \
-        build-demo-grpc format/go format/yaml lint/go lint/yaml lint/action \
-        actionlint yamlfmt gotestfmt ratchet ratchet/pin ratchet/update ratchet/check \
-        golangci-lint embedmd help docs tmp/make-help.txt
+        build-demo build-demo-grpc build-demo-http format/go format/yaml lint/go lint/yaml \
+        lint/action lint/makefile actionlint yamlfmt gotestfmt ratchet ratchet/pin \
+        ratchet/update ratchet/check golangci-lint embedmd checkmake help docs check-embed
 
 # Constant variables
 BINARY_NAME := otel
@@ -31,7 +34,7 @@ help: ## Show this help message
 	@echo 'Usage: make [target]'
 	@echo ''
 	@echo 'Targets:'
-	@awk 'BEGIN {FS = ":.*?## "} /^[A-Za-z0-9_.\/-]+:.*?## / {printf "  %-20s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = ":.*?## "} /^[A-Za-z0-9_./-]+:.*?## / {printf "  %-20s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 all: build format lint test
 
@@ -51,28 +54,34 @@ install: ## Install otel to $$GOPATH/bin
 	go install -ldflags "-X main.Version=$(VERSION) -X main.CommitHash=$(COMMIT_HASH) -X main.BuildTime=$(BUILD_TIME)" ./$(TOOL_DIR)
 
 .ONESHELL:
-SHELL := /bin/bash
 package: ## Package the instrumentation code into binary
 	@echo "Packaging instrumentation code into binary..."
-	set -euo pipefail
+	@set -euo pipefail
 	rm -rf $(INST_PKG_TMP)
-	cp -a pkg $(INST_PKG_TMP)
+	if [ ! -d pkg ]; then \
+		echo "Error: pkg directory does not exist"; \
+		exit 1; \
+	fi
+	cp -r pkg $(INST_PKG_TMP)
 	(cd $(INST_PKG_TMP) && go mod tidy)
 	tar -czf $(INST_PKG_GZIP) --exclude='*.log' $(INST_PKG_TMP)
 	mkdir -p tool/data/
 	mv $(INST_PKG_GZIP) tool/data/
 	rm -rf $(INST_PKG_TMP)
+	@echo "Package created successfully at tool/data/$(INST_PKG_GZIP)"
+
+build-demo: ## Build all demos
+build-demo: build-demo-grpc build-demo-http
 
 build-demo-grpc: ## Build gRPC demo server and client
 	@echo "Building gRPC demo..."
-	@cd demo/grpc/server && go generate && go build -o server .
-	@cd demo/grpc/client && go build -o client .
+	@(cd demo/grpc/server && go generate && go build -o server .)
+	@(cd demo/grpc/client && go build -o client .)
 
-.PHONY: build-demo-http
-build-demo-http:
+build-demo-http: ## Build HTTP demo server and client
 	@echo "Building HTTP demo..."
-	@cd demo/http/server && go build -o server .
-	@cd demo/http/client && go build -o client .
+	@(cd demo/http/server && go build -o server .)
+	@(cd demo/http/client && go build -o client .)
 
 # Format targets
 
@@ -91,8 +100,8 @@ format/yaml: yamlfmt
 
 # Lint targets
 
-lint: ## Run all linters (Go, YAML, GitHub Actions)
-lint: lint/go lint/yaml lint/action
+lint: ## Run all linters (Go, YAML, GitHub Actions, Makefile)
+lint: lint/go lint/yaml lint/action lint/makefile
 
 lint/action: ## Lint GitHub Actions workflows
 lint/action: actionlint ratchet/check
@@ -109,22 +118,27 @@ lint/yaml: yamlfmt
 	@echo "Linting YAML files..."
 	yamlfmt -lint -dstar '**/*.yml' '**/*.yaml'
 
+lint/makefile: ## Lint Makefile
+lint/makefile: checkmake
+	@echo "Linting Makefile..."
+	checkmake --config .checkmake Makefile
+
 # Ratchet targets for GitHub Actions pinning
 
 ratchet/pin: ## Pin GitHub Actions to commit SHAs
 ratchet/pin: ratchet
 	@echo "Pinning GitHub Actions to commit SHAs..."
-	ratchet pin .github/workflows/*.yml .github/workflows/*.yaml
+	@find .github/workflows -name '*.yml' -o -name '*.yaml' | xargs ratchet pin
 
 ratchet/update: ## Update pinned GitHub Actions to latest versions
 ratchet/update: ratchet
 	@echo "Updating pinned GitHub Actions to latest versions..."
-	ratchet update .github/workflows/*.yml .github/workflows/*.yaml
+	@find .github/workflows -name '*.yml' -o -name '*.yaml' | xargs ratchet update
 
 ratchet/check: ## Verify all GitHub Actions are pinned
 ratchet/check: ratchet
 	@echo "Checking GitHub Actions are pinned..."
-	ratchet lint .github/workflows/*.yml .github/workflows/*.yaml
+	@find .github/workflows -name '*.yml' -o -name '*.yaml' | xargs ratchet lint
 
 # Documentation targets
 
@@ -138,26 +152,52 @@ tmp/make-help.txt: $(MAKEFILE_LIST)
 	@mkdir -p tmp
 	@$(MAKE) --no-print-directory help > tmp/make-help.txt
 
+# Validation targets
+
+check-embed: ## Verify that embedded files exist (required for tests)
+	@echo "Checking embedded files..."
+	@if [ ! -f tool/data/$(INST_PKG_GZIP) ]; then \
+		echo "Error: tool/data/$(INST_PKG_GZIP) does not exist"; \
+		echo "Run 'make package' to generate it"; \
+		exit 1; \
+	fi
+	@echo "All embedded files present"
+
 # Test targets
+# NOTE: Tests require the 'package' target to run first because tool/data/export.go
+# uses //go:embed to embed otel-pkg.gz at compile time. If the file doesn't exist
+# when Go compiles the test packages, the embed will fail.
 
 test: ## Run all tests (unit + integration)
 test: test-unit test-integration
 
 .ONESHELL:
-SHELL := /bin/bash
 test-unit: ## Run unit tests
-test-unit: gotestfmt
+test-unit: package gotestfmt
 	@echo "Running unit tests..."
 	set -euo pipefail
-	go test -json -v -timeout=5m -count=1 ./tool/... 2>&1 | tee ./gotest-unit.log | gotestfmt
+	go test -json -v -shuffle=on -timeout=5m -count=1 ./tool/... 2>&1 | tee ./gotest-unit.log | gotestfmt
 
 .ONESHELL:
-SHELL := /bin/bash
+test-unit/coverage: ## Run unit tests with coverage report
+test-unit/coverage: package gotestfmt
+	@echo "Running unit tests with coverage report..."
+	set -euo pipefail
+	go test -json -v -shuffle=on -timeout=5m -count=1 ./tool/... -coverprofile=coverage.txt -covermode=atomic 2>&1 | tee ./gotest-unit.log | gotestfmt
+
+.ONESHELL:
 test-integration: ## Run integration tests
 test-integration: build gotestfmt
 	@echo "Running integration tests..."
 	set -euo pipefail
-	go test -json -v -timeout=10m -count=1 -run TestBasic ./test/... 2>&1 | tee ./gotest-integration.log | gotestfmt
+	go test -json -v -shuffle=on -timeout=10m -count=1 -run TestBasic ./test/... 2>&1 | tee ./gotest-integration.log | gotestfmt
+
+.ONESHELL:
+test-integration/coverage: ## Run integration tests with coverage report
+test-integration/coverage: build gotestfmt
+	@echo "Running integration tests with coverage report..."
+	set -euo pipefail
+	go test -json -v -shuffle=on -timeout=10m -count=1 -run TestBasic ./test/... -coverprofile=coverage.txt -covermode=atomic 2>&1 | tee ./gotest-integration.log | gotestfmt
 
 # Clean targets
 
@@ -213,4 +253,10 @@ embedmd: ## Install embedmd if not present
 	@if ! command -v embedmd >/dev/null 2>&1; then \
 		echo "Installing embedmd..."; \
 		go install github.com/campoy/embedmd@latest; \
+	fi
+
+checkmake: ## Install checkmake if not present
+	@if ! command -v checkmake >/dev/null 2>&1; then \
+		echo "Installing checkmake..."; \
+		go install github.com/checkmake/checkmake/cmd/checkmake@latest; \
 	fi
