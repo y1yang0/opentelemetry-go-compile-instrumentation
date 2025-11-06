@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func startServerAndWaitForReady(t *testing.T, serverApp *exec.Cmd, outputPipe io.ReadCloser, readyMsg string) {
+func startServerAndWaitForReady(t *testing.T, serverApp *exec.Cmd, outputPipe io.ReadCloser, readyMsg string) func() string {
 	t.Helper()
 	t.Cleanup(func() {
 		if serverApp.Process != nil {
@@ -24,13 +24,17 @@ func startServerAndWaitForReady(t *testing.T, serverApp *exec.Cmd, outputPipe io
 	})
 
 	readyChan := make(chan struct{})
+	doneChan := make(chan struct{})
+	output := strings.Builder{}
 	go func() {
+		// Scan will return false when the application exits
+		defer close(doneChan)
 		scanner := bufio.NewScanner(outputPipe)
 		for scanner.Scan() {
 			line := scanner.Text()
+			output.WriteString(line + "\n")
 			if strings.Contains(line, readyMsg) {
 				close(readyChan)
-				return
 			}
 		}
 	}()
@@ -40,6 +44,15 @@ func startServerAndWaitForReady(t *testing.T, serverApp *exec.Cmd, outputPipe io
 		t.Logf("Server is ready!")
 	case <-time.After(10 * time.Second):
 		t.Fatal("timeout waiting for server to be ready")
+	}
+
+	return func() string {
+		// Wait for the server to exit
+		serverApp.Wait()
+		// Wait for the output goroutine to finish
+		<-doneChan
+		// Return the complete output
+		return output.String()
 	}
 }
 
@@ -53,11 +66,14 @@ func TestHttp(t *testing.T) {
 
 	// Start the server and wait for it to be ready.
 	serverApp, outputPipe := StartApp(t, serverDir)
-	startServerAndWaitForReady(t, serverApp, outputPipe, "server started")
+	waitServerOutput := startServerAndWaitForReady(t, serverApp, outputPipe, "server started")
 
 	// Run the client, it will send a shutdown request to the server.
 	RunApp(t, clientDir, "-shutdown")
 
-	// Wait for the server to exit.
-	require.NoError(t, serverApp.Wait())
+	// Wait for the server to exit and return the output.
+	output := waitServerOutput()
+
+	// Verify that the server hook was called.
+	require.Contains(t, output, "BeforeServeHTTP")
 }
