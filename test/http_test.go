@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func startServerAndWaitForReady(t *testing.T, serverApp *exec.Cmd, outputPipe io.ReadCloser) func() string {
+func waitUntilReady(t *testing.T, serverApp *exec.Cmd, outputPipe io.ReadCloser) func() string {
 	t.Helper()
 
 	readyChan := make(chan struct{})
@@ -62,13 +62,13 @@ func TestHttp(t *testing.T) {
 
 	// Start the server and wait for it to be ready.
 	serverApp, outputPipe := StartApp(t, serverDir)
-	waitServerOutput := startServerAndWaitForReady(t, serverApp, outputPipe)
+	waitUntilDone := waitUntilReady(t, serverApp, outputPipe)
 
 	// Run the client, it will send a shutdown request to the server.
 	RunApp(t, clientDir, "-shutdown")
 
 	// Wait for the server to exit and return the output.
-	output := waitServerOutput()
+	output := waitUntilDone()
 
 	// Verify that the server hook was called.
 	require.Contains(t, output, "BeforeServeHTTP")
