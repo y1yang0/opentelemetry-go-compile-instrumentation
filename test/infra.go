@@ -5,6 +5,8 @@ package test
 
 import (
 	"context"
+	"io"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
@@ -19,16 +21,12 @@ import (
 // compiled binary program, and verify that the output of the binary program
 // is as expected.
 
-func runCmd(ctx context.Context, dir string, args ...string) (string, error) {
+func newCmd(ctx context.Context, dir string, args ...string) *exec.Cmd {
 	path := args[0]
 	args = args[1:]
 	cmd := exec.CommandContext(ctx, path, args...)
 	cmd.Dir = dir
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return string(output), err
-	}
-	return string(output), nil
+	return cmd
 }
 
 // BuildApp builds the application with the instrumentation tool.
@@ -37,15 +35,35 @@ func BuildApp(t *testing.T, appDir string, args ...string) {
 	if util.IsWindows() {
 		binName += ".exe"
 	}
-	otelPath := filepath.Join("..", "..", binName)
+	pwd, err := os.Getwd()
+	require.NoError(t, err)
+	otelPath := filepath.Join(pwd, "..", binName)
 	args = append([]string{otelPath}, args...)
-	out, err := runCmd(t.Context(), appDir, args...)
+
+	cmd := newCmd(t.Context(), appDir, args...)
+	out, err := cmd.CombinedOutput()
 	require.NoError(t, err, out)
 }
 
 // RunApp runs the application and returns the output.
-func RunApp(t *testing.T, dir string) string {
-	out, err := runCmd(t.Context(), dir, "./"+filepath.Base(dir))
+// It waits for the application to complete.
+func RunApp(t *testing.T, dir string, args ...string) string {
+	appName := "./" + filepath.Base(dir)
+	cmd := newCmd(t.Context(), dir, append([]string{appName}, args...)...)
+	out, err := cmd.CombinedOutput()
 	require.NoError(t, err, out)
-	return out
+	return string(out)
+}
+
+// StartApp starts the application but does not wait for it to complete.
+// It returns the command and the combined output pipe(stdout and stderr).
+func StartApp(t *testing.T, dir string, args ...string) (*exec.Cmd, io.ReadCloser) {
+	appName := "./" + filepath.Base(dir)
+	cmd := newCmd(t.Context(), dir, append([]string{appName}, args...)...)
+	stdout, err := cmd.StdoutPipe()
+	require.NoError(t, err)
+	cmd.Stderr = cmd.Stdout // redirect stderr to stdout for easier debugging
+	err = cmd.Start()
+	require.NoError(t, err)
+	return cmd, stdout
 }
