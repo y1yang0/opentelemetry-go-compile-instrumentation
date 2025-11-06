@@ -17,17 +17,12 @@ import (
 
 func startServerAndWaitForReady(t *testing.T, serverApp *exec.Cmd, outputPipe io.ReadCloser, readyMsg string) func() string {
 	t.Helper()
-	t.Cleanup(func() {
-		if serverApp.Process != nil {
-			serverApp.Process.Kill()
-		}
-	})
 
 	readyChan := make(chan struct{})
 	doneChan := make(chan struct{})
 	output := strings.Builder{}
 	go func() {
-		// Scan will return false when the application exits
+		// Scan will return false when the application exits.
 		defer close(doneChan)
 		scanner := bufio.NewScanner(outputPipe)
 		for scanner.Scan() {

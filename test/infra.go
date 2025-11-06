@@ -65,5 +65,10 @@ func StartApp(t *testing.T, dir string, args ...string) (*exec.Cmd, io.ReadClose
 	cmd.Stderr = cmd.Stdout // redirect stderr to stdout for easier debugging
 	err = cmd.Start()
 	require.NoError(t, err)
+	t.Cleanup(func() {
+		if cmd.Process != nil {
+			cmd.Process.Kill()
+		}
+	})
 	return cmd, stdout
 }
