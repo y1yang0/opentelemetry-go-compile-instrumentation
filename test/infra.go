@@ -66,7 +66,7 @@ func StartApp(t *testing.T, dir string, args ...string) (*exec.Cmd, io.ReadClose
 	err = cmd.Start()
 	require.NoError(t, err)
 	t.Cleanup(func() {
-		if cmd.Process != nil {
+		if cmd.Process != nil && cmd.ProcessState == nil {
 			require.NoError(t, cmd.Process.Kill())
 		}
 	})
