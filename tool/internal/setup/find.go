@@ -146,7 +146,8 @@ func (sp *SetupPhase) findDeps(ctx context.Context, goBuildCmd []string) ([]*Dep
 			if !util.IsGoFile(arg) {
 				continue
 			}
-			// This is a generated file, e.g. _cgo_gotypes.go
+			// This is a generated file during compilation, e.g. _cgo_gotypes.go
+			// We need to skip it as it is not part of the instrumentation target
 			if !util.PathExists(arg) {
 				continue
 			}
