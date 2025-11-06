@@ -1,7 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-package test
+package app
 
 import (
 	"context"
@@ -17,9 +17,8 @@ import (
 
 // -----------------------------------------------------------------------------
 // E2E Test Infrastructure
-// This infrastructure is used to actually build the application, execute the
-// compiled binary program, and verify that the output of the binary program
-// is as expected.
+// This infrastructure is used to actually build the application with the otel
+// instrumentation tool, execute the application and verify the output.
 
 func newCmd(ctx context.Context, dir string, args ...string) *exec.Cmd {
 	path := args[0]
@@ -29,8 +28,8 @@ func newCmd(ctx context.Context, dir string, args ...string) *exec.Cmd {
 	return cmd
 }
 
-// BuildApp builds the application with the instrumentation tool.
-func BuildApp(t *testing.T, appDir string, args ...string) {
+// Build builds the application with the instrumentation tool.
+func Build(t *testing.T, appDir string, args ...string) {
 	binName := "otel"
 	if util.IsWindows() {
 		binName += ".exe"
@@ -45,9 +44,9 @@ func BuildApp(t *testing.T, appDir string, args ...string) {
 	require.NoError(t, err, out)
 }
 
-// RunApp runs the application and returns the output.
+// Run runs the application and returns the output.
 // It waits for the application to complete.
-func RunApp(t *testing.T, dir string, args ...string) string {
+func Run(t *testing.T, dir string, args ...string) string {
 	appName := "./" + filepath.Base(dir)
 	cmd := newCmd(t.Context(), dir, append([]string{appName}, args...)...)
 	out, err := cmd.CombinedOutput()
@@ -55,9 +54,9 @@ func RunApp(t *testing.T, dir string, args ...string) string {
 	return string(out)
 }
 
-// StartApp starts the application but does not wait for it to complete.
+// Start starts the application but does not wait for it to complete.
 // It returns the command and the combined output pipe(stdout and stderr).
-func StartApp(t *testing.T, dir string, args ...string) (*exec.Cmd, io.ReadCloser) {
+func Start(t *testing.T, dir string, args ...string) (*exec.Cmd, io.ReadCloser) {
 	appName := "./" + filepath.Base(dir)
 	cmd := newCmd(t.Context(), dir, append([]string{appName}, args...)...)
 	stdout, err := cmd.StdoutPipe()

@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/test/app"
 	"github.com/stretchr/testify/require"
 )
 
@@ -57,15 +58,15 @@ func TestHttp(t *testing.T) {
 	clientDir := filepath.Join("..", "demo", "http", "client")
 
 	// Build the server and client applications with the instrumentation tool.
-	BuildApp(t, serverDir, "go", "build", "-a")
-	BuildApp(t, clientDir, "go", "build", "-a")
+	app.Build(t, serverDir, "go", "build", "-a")
+	app.Build(t, clientDir, "go", "build", "-a")
 
 	// Start the server and wait for it to be ready.
-	serverApp, outputPipe := StartApp(t, serverDir)
+	serverApp, outputPipe := app.Start(t, serverDir)
 	waitUntilDone := waitUntilReady(t, serverApp, outputPipe)
 
 	// Run the client, it will send a shutdown request to the server.
-	RunApp(t, clientDir, "-shutdown")
+	app.Run(t, clientDir, "-shutdown")
 
 	// Wait for the server to exit and return the output.
 	output := waitUntilDone()
