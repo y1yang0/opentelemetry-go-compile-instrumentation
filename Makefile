@@ -149,11 +149,11 @@ lint/license-header/fix: ## Add missing license headers to source files
 
 .PHONY: lint/markdown
 lint/markdown: ## Lint Check the markdown files.
-	npx markdownlint-cli -c .markdownlint.yaml **/*.md
+	npx markdownlint-cli -c .github/config/markdownlint.yaml **/*.md
 
 .PHONY: lint/markdown/fix
 lint/markdown/fix: ## Lint Check the markdown files and fix them.
-	npx markdownlint-cli -c .markdownlint.yaml --fix **/*.md
+	npx markdownlint-cli -c .github/config/markdownlint.yaml --fix **/*.md
 
 # Ratchet targets for GitHub Actions pinning
 
