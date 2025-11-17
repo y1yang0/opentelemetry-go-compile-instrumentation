@@ -126,7 +126,7 @@ func GoBuild(ctx context.Context, args []string) error {
 	backupFiles := []string{"go.mod", "go.sum", "go.work", "go.work.sum"}
 	err := util.BackupFile(backupFiles)
 	if err != nil {
-		logger.DebugContext(ctx, "failed to back up go.mod, go.sum, go.work, go.work.sum, proceeding despite this", "error", err)
+		logger.DebugContext(ctx, "failed to back up files", "error", err)
 	}
 	defer func() {
 		err = os.RemoveAll(OtelRuntimeFile)
@@ -135,7 +135,7 @@ func GoBuild(ctx context.Context, args []string) error {
 		}
 		err = util.RestoreFile(backupFiles)
 		if err != nil {
-			logger.DebugContext(ctx, "failed to restore go.mod, go.sum, go.work, go.work.sum", "error", err)
+			logger.DebugContext(ctx, "failed to restore files", "error", err)
 		}
 	}()
 
