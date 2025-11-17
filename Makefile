@@ -92,13 +92,13 @@ format: format/go format/yaml lint/license-header/fix
 format/go: ## Format Go code only
 format/go: golangci-lint
 	@echo "Formatting Go code..."
-	golangci-lint fmt
-	golangci-lint run --fix
+	golangci-lint fmt --config .github/config/golangci.yml
+	golangci-lint run --config .github/config/golangci.yml --fix
 
 format/yaml: ## Format YAML files only (excludes testdata)
 format/yaml: yamlfmt
 	@echo "Formatting YAML files..."
-	yamlfmt -dstar '**/*.yml' '**/*.yaml'
+	yamlfmt -conf .github/config/yamlfmt -dstar '**/*.yml' '**/*.yaml'
 
 # Lint targets
 
@@ -113,12 +113,12 @@ lint/action: actionlint ratchet/check
 lint/go: ## Run golangci-lint on Go code
 lint/go: golangci-lint
 	@echo "Linting Go code..."
-	golangci-lint run
+	golangci-lint run --config .github/config/golangci.yml
 
 lint/yaml: ## Lint YAML formatting
 lint/yaml: yamlfmt
 	@echo "Linting YAML files..."
-	yamlfmt -lint -dstar '**/*.yml' '**/*.yaml'
+	yamlfmt -conf .github/config/yamlfmt -lint -dstar '**/*.yml' '**/*.yaml'
 
 lint/dockerfile: ## Lint Dockerfiles
 lint/dockerfile: hadolint
@@ -134,16 +134,16 @@ lint/dockerfile: hadolint
 lint/makefile: ## Lint Makefile
 lint/makefile: checkmake
 	@echo "Linting Makefile..."
-	checkmake --config .checkmake Makefile
+	checkmake --config .github/config/checkmake Makefile
 
 # License header targets
 
 lint/license-header: ## Check license headers in source files
-	@./scripts/license-check.sh
+	@.github/scripts/license-check.sh
 
 .PHONY: lint/license-header/fix
 lint/license-header/fix: ## Add missing license headers to source files
-	@./scripts/license-check.sh --fix
+	@.github/scripts/license-check.sh --fix
 
 # Ratchet targets for GitHub Actions pinning
 
