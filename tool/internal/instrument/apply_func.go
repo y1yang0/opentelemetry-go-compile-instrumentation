@@ -95,7 +95,7 @@ func createHookArgs(names []string) []dst.Expr {
 	// If we find "a type" in target func, we pass "&a" to trampoline func,
 	// if we find "_ type" in target func, we pass "nil" to trampoline func,
 	for _, name := range names {
-		if name == "_" {
+		if name == ast.IdentIgnore {
 			exprs = append(exprs, ast.Nil())
 		} else {
 			exprs = append(exprs, ast.AddressOf(name))

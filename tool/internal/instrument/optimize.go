@@ -207,34 +207,37 @@ func flattenTJump(tjump *TJump, removedOnExit bool) error {
 	//
 	// We can assume that:
 	// 1. If "SetSkipCall" string never appears in the Hook code,
-	// 2. and "ictx" is never used for purposes other than method calls (e.g.,
-	// assignment, pass as args, etc.),
-	// then "ictx" does not escape, and the tjump represents a valid candidate
-	// for optimization. This would significantly boost performance.
+	// 2. and HookContext parameter is never used for purposes other than method
+	// calls (e.g. assignment, pass as args, etc.), then the HookContext parameter
+	// does not escape, and the tjump represents a valid candidate for optimization.
+	// This would significantly boost performance.
 	hookFunc, err := getHookFunc(tjump.rule, true)
 	if err != nil {
 		return err
 	}
 	// Check if the hook function contains any "SetSkipCall" string
-	foundPoison := false
+	found := false
 	dst.Inspect(hookFunc, func(node dst.Node) bool {
 		if ident, ok := node.(*dst.Ident); ok {
 			if strings.Contains(ident.Name, trampolineSetSkipCallName) {
-				foundPoison = true
+				found = true
 				return false
 			}
 		}
-		if foundPoison {
+		if found {
 			return false
 		}
 		return true
 	})
+	if found {
+		return nil
+	}
 
 	// Check if the hook context parameter is used for any other purpose than
 	// method calls
 	escape := false
 	hookContextParam := hookFunc.Type.Params.List[0].Names[0].Name
-	if hookContextParam != "_" {
+	if hookContextParam != ast.IdentIgnore {
 		dst.Inspect(hookFunc.Body, func(n dst.Node) bool {
 			if escape {
 				return false
@@ -260,15 +263,16 @@ func flattenTJump(tjump *TJump, removedOnExit bool) error {
 			return true
 		})
 	}
-
-	if foundPoison || escape {
+	if escape {
 		return nil
 	}
 
 	// Flatten the trampoline-jump-if to sequential function calls
 	ifStmt := tjump.ifStmt
-	initStmt := ifStmt.Init.(*dst.AssignStmt)
-	util.Assert(len(initStmt.Lhs) == 2, "must be")
+	initStmt, ok := ifStmt.Init.(*dst.AssignStmt)
+	const twoLhs = 2
+	util.Assert(ok, "init statement is not an AssignStmt")
+	util.Assert(len(initStmt.Lhs) == twoLhs, "must have two lhs")
 	ifStmt.Cond = ast.BoolFalse()
 	ifStmt.Body = ast.Block(ast.EmptyStmt())
 	if removedOnExit {
@@ -279,7 +283,8 @@ func flattenTJump(tjump *TJump, removedOnExit bool) error {
 		// TODO: Remove After declaration as well
 	} else {
 		// Otherwise, mark skipCall identifier as unused
-		skipCallIdent := initStmt.Lhs[1].(*dst.Ident)
+		skipCallIdent, ok1 := initStmt.Lhs[1].(*dst.Ident)
+		util.Assert(ok1, "skipCall identifier is not an Ident")
 		ast.MakeUnusedIdent(skipCallIdent)
 	}
 	return nil

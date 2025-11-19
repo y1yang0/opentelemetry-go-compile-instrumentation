@@ -87,7 +87,8 @@ func (ip *InstrumentPhase) ensureUnsafeImport() {
 			}
 		}
 	}
-	ip.target.Decls = append([]dst.Decl{ast.ImportDecl("_", unsafePackageName)}, ip.target.Decls...)
+	unsafeImport := ast.ImportDecl(ast.IdentIgnore, unsafePackageName)
+	ip.target.Decls = append([]dst.Decl{unsafeImport}, ip.target.Decls...)
 }
 
 func (ip *InstrumentPhase) materializeTemplate() error {
