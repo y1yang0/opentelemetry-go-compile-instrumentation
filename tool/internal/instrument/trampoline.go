@@ -39,6 +39,7 @@ const (
 	trampolineGetParamName          = "GetParam"
 	trampolineSetReturnValName      = "SetReturnVal"
 	trampolineGetReturnValName      = "GetReturnVal"
+	trampolineSetSkipCallName       = "SetSkipCall"
 	trampolineValIdentifier         = "val"
 	trampolineCtxIdentifier         = "c"
 	trampolineParamsIdentifier      = "params"

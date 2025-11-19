@@ -163,6 +163,34 @@ func createTestRuleJSON(mainGoFile string) ([]byte, error) {
 						Func:   "Func2",
 						Before: "H4Before",
 					},
+					{
+						InstBaseRule: rule.InstBaseRule{
+							Name:   "opt_good",
+							Target: "main",
+						},
+						Path:   filepath.Join(".", "testdata"),
+						Func:   "OptGood",
+						Before: "H5Before",
+					},
+					{
+						InstBaseRule: rule.InstBaseRule{
+							Name:   "opt_bad",
+							Target: "main",
+						},
+						Path:   filepath.Join(".", "testdata"),
+						Func:   "OptBad",
+						Before: "H6Before",
+					},
+					{
+						InstBaseRule: rule.InstBaseRule{
+							Name:   "opt_bad2",
+							Target: "main",
+						},
+						Path:   filepath.Join(".", "testdata"),
+						Func:   "OptBad2",
+						Before: "H7Before",
+						After:  "H7After",
+					},
 				},
 			},
 			RawRules: map[string][]*rule.InstRawRule{

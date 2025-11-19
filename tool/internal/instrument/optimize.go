@@ -4,6 +4,8 @@
 package instrument
 
 import (
+	"strings"
+
 	"github.com/dave/dst"
 
 	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/ex"
@@ -178,6 +180,111 @@ func removeBeforeTrampolineCall(targetFile *dst.File, tjump *TJump) error {
 	return ex.Newf("can not remove Before trampoline function")
 }
 
+func flattenTJump(tjump *TJump, removedOnExit bool) error {
+	// The current standard tjump pattern is as follows:
+	//
+	// 	if ctx, skip := otel_trampoline_before(&arg); skip {
+	// 		otel_trampoline_after(ctx, &retval)
+	// 		return ...
+	// 	} else {
+	// 		defer otel_trampoline_after(ctx, &retval)
+	// 		...
+	// 	}
+	//
+	// A key optimization opportunity lies in "skip", which is highly likely to
+	// be false. In this scenario, tjump can be optimized into the following form:
+	//
+	// 	ctx,_ := otel_trampoline_before(&arg);
+	// 	defer otel_trampoline_after(ctx, &retval)
+	//
+	// Consider the following hook code
+	//
+	//	func hookFunc(ictx HookContext, arg1....) {
+	// 		ictx.SetSkipCall()
+	// 		passTo(ictx)
+	// 		var escape interface{} = ictx
+	//	}
+	//
+	// We can assume that:
+	// 1. If "SetSkipCall" string never appears in the Hook code,
+	// 2. and "ictx" is never used for purposes other than method calls (e.g.,
+	// assignment, pass as args, etc.),
+	// then "ictx" does not escape, and the tjump represents a valid candidate
+	// for optimization. This would significantly boost performance.
+	hookFunc, err := getHookFunc(tjump.rule, true)
+	if err != nil {
+		return err
+	}
+	// Check if the hook function contains any "SetSkipCall" string
+	foundPoison := false
+	dst.Inspect(hookFunc, func(node dst.Node) bool {
+		if ident, ok := node.(*dst.Ident); ok {
+			if strings.Contains(ident.Name, trampolineSetSkipCallName) {
+				foundPoison = true
+				return false
+			}
+		}
+		if foundPoison {
+			return false
+		}
+		return true
+	})
+
+	// Check if the hook context parameter is used for any other purpose than
+	// method calls
+	escape := false
+	hookContextParam := hookFunc.Type.Params.List[0].Names[0].Name
+	if hookContextParam != "_" {
+		dst.Inspect(hookFunc.Body, func(n dst.Node) bool {
+			if escape {
+				return false
+			}
+			switch n := n.(type) {
+			case *dst.SelectorExpr:
+				// Check if ictx is used as method receiver: ictx.Method()
+				if id, ok := n.X.(*dst.Ident); ok && id.Name == hookContextParam {
+					// Valid usage.
+					// Return false to stop visiting children, so we don't visit
+					// the Ident "ictx", which would be caught by the case below.
+					return false
+				}
+			case *dst.Ident:
+				// If we encounter ictx here, it means it wasn't part of a method
+				// call receiver (because we returned false above). So it is an
+				// invalid usage.
+				if n.Name == hookContextParam {
+					escape = true
+					return false
+				}
+			}
+			return true
+		})
+	}
+
+	if foundPoison || escape {
+		return nil
+	}
+
+	// Flatten the trampoline-jump-if to sequential function calls
+	ifStmt := tjump.ifStmt
+	initStmt := ifStmt.Init.(*dst.AssignStmt)
+	util.Assert(len(initStmt.Lhs) == 2, "must be")
+	ifStmt.Cond = ast.BoolFalse()
+	ifStmt.Body = ast.Block(ast.EmptyStmt())
+	if removedOnExit {
+		// We removed the last reference to hook context after nulling out body
+		// block, at this point, all lhs are unused, replace assignment to simple
+		// function call
+		ifStmt.Init = ast.ExprStmt(initStmt.Rhs[0])
+		// TODO: Remove After declaration as well
+	} else {
+		// Otherwise, mark skipCall identifier as unused
+		skipCallIdent := initStmt.Lhs[1].(*dst.Ident)
+		ast.MakeUnusedIdent(skipCallIdent)
+	}
+	return nil
+}
+
 func stripTJumpLabel(tjump *TJump) {
 	ifStmt := tjump.ifStmt
 	ifStmt.Decs.If = ifStmt.Decs.If[1:]
@@ -195,16 +302,36 @@ func (ip *InstrumentPhase) optimizeTJumps() error {
 		// function, they are nested in the else block. See findJumpPoint for
 		// more details.
 		// TODO: Remove corresponding HookContextImpl methods
+		removedOnExit := false
 		rule := tjump.rule
 		if rule.After == "" {
-			return removeAfterTrampolineCall(tjump)
+			err := removeAfterTrampolineCall(tjump)
+			if err != nil {
+				return err
+			}
+			removedOnExit = true
 		}
 
 		// No Before hook present? Construct HookContext on the fly and pass it
 		// to After trampoline defer call and rewrite the whole condition to
 		// always false, then null out its initialization statement.
 		if rule.Before == "" {
-			return removeBeforeTrampolineCall(ip.target, tjump)
+			err := removeBeforeTrampolineCall(ip.target, tjump)
+			if err != nil {
+				return err
+			}
+		}
+
+		// No SkipCall used in Before hook? Rewrite cond of trampoline-jump-if
+		// to always false, and remove return statement in then block, they are
+		// memory aware and may generate memory SSA values during compilation.
+		// This further simplifies the trampoline-jump-if and gives more chances
+		// for optimization passes to kick in.
+		if rule.Before != "" {
+			err := flattenTJump(tjump, removedOnExit)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
