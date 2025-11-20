@@ -205,7 +205,26 @@ func flattenTJump(tjump *TJump, removedOnExit bool) error {
 	// 		var escape interface{} = ictx
 	//	}
 	//
-	// We can assume that:
+	// This optimization can be applied when the HookContext parameter meets these conditions:
+	// 1. SetSkipCall is never called (so skip is always false)
+	// 2. The HookContext is ONLY used as a receiver for method calls
+	//
+	// Allowed usage (optimization can proceed):
+	//	func hookFunc(ictx HookContext, arg1....) {
+	// 		ictx.GetParam(0)      // ✓ Method calls are allowed
+	// 		ictx.SetParam(1, val) // ✓ Method calls are allowed
+	//	}
+	//
+	// Disallowed usage (prevents optimization):
+	//	func hookFunc(ictx HookContext, arg1....) {
+	// 		ictx.SetSkipCall()           // ✗ SetSkipCall prevents optimization
+	// 		passTo(ictx)                 // ✗ Cannot pass as argument
+	// 		var escape interface{} = ictx // ✗ Cannot assign to variable
+	// 		_ = ictx                     // ✗ Cannot use in any assignment
+	//	}
+	//
+	// When both conditions are met, the HookContext doesn't escape and we can
+	// safely flatten the trampoline-jump-if pattern, significantly boosting performance.
 	// 1. If "SetSkipCall" string never appears in the Hook code,
 	// 2. and HookContext parameter is never used for purposes other than method
 	// calls (e.g. assignment, pass as args, etc.), then the HookContext parameter
