@@ -94,8 +94,7 @@ func mustTJump(ifStmt *dst.IfStmt) {
 
 func removeAfterTrampolineCall(tjump *TJump) error {
 	ifStmt := tjump.ifStmt
-	elseBlock, ok := ifStmt.Else.(*dst.BlockStmt)
-	util.Assert(ok, "else block is not a BlockStmt")
+	elseBlock := util.AssertType[*dst.BlockStmt](ifStmt.Else)
 	for i, stmt := range elseBlock.List {
 		switch stmt.(type) {
 		case *dst.DeferStmt:
@@ -150,11 +149,10 @@ func removeBeforeTrampolineCall(targetFile *dst.File, tjump *TJump) error {
 	hookContextExpr := newHookContextImpl(tjump)
 	// Find defer call to After and replace its call context with new one
 	found := false
-	block, ok := tjump.ifStmt.Else.(*dst.BlockStmt)
-	util.Assert(ok, "else block is not a BlockStmt")
+	block := util.AssertType[*dst.BlockStmt](tjump.ifStmt.Else)
 	for _, stmt := range block.List {
 		// Replace call context argument of defer statement to structure literal
-		if deferStmt, ok1 := stmt.(*dst.DeferStmt); ok1 {
+		if deferStmt, ok := stmt.(*dst.DeferStmt); ok {
 			args := deferStmt.Call.Args
 			util.Assert(len(args) >= 1, "must have at least one argument")
 			args[0] = hookContextExpr
@@ -170,7 +168,7 @@ func removeBeforeTrampolineCall(targetFile *dst.File, tjump *TJump) error {
 	tjump.ifStmt.Body = ast.Block(ast.EmptyStmt())
 	// Remove generated Before trampoline function
 	for i, decl := range targetFile.Decls {
-		if funcDecl, ok1 := decl.(*dst.FuncDecl); ok1 {
+		if funcDecl, ok := decl.(*dst.FuncDecl); ok {
 			if funcDecl.Name.Name == makeName(tjump.rule, tjump.target, true) {
 				targetFile.Decls = append(targetFile.Decls[:i], targetFile.Decls[i+1:]...)
 				return nil
