@@ -180,6 +180,67 @@ func removeBeforeTrampolineCall(targetFile *dst.File, tjump *TJump) error {
 	return ex.Newf("can not remove Before trampoline function")
 }
 
+// canFlattenTJump checks if the tjump can be safely flattened based on
+// the hook function's usage of HookContext. Returns true if:
+// 1. SetSkipCall is never called (so skip is always false)
+// 2. The HookContext parameter is only used as a receiver for method calls
+func canFlattenTJump(hookFunc *dst.FuncDecl) bool {
+	// Check if the hook function contains any "SetSkipCall" string
+	// If found, the trampoline-jump-if cannot be flattened
+	found := false
+	dst.Inspect(hookFunc, func(node dst.Node) bool {
+		if ident, ok := node.(*dst.Ident); ok {
+			if strings.Contains(ident.Name, trampolineSetSkipCallName) {
+				found = true
+				return false
+			}
+		}
+		if found {
+			return false
+		}
+		return true
+	})
+	if found {
+		return false
+	}
+
+	// Check if the hook context parameter escapes (used for non-method calls)
+	escape := false
+	hookContextParam := hookFunc.Type.Params.List[0].Names[0].Name
+	if hookContextParam == ast.IdentIgnore {
+		// If the parameter is ignored, it doesn't escape because it is not used
+		return true
+	}
+	dst.Inspect(hookFunc.Body, func(n dst.Node) bool {
+		if escape {
+			return false
+		}
+		switch n := n.(type) {
+		case *dst.SelectorExpr:
+			// Check if ictx is used as method receiver: ictx.Method()
+			if id, ok := n.X.(*dst.Ident); ok && id.Name == hookContextParam {
+				// Valid usage.
+				// Return false to stop visiting children, so we don't visit
+				// the Ident "ictx", which would be caught by the case below.
+				return false
+			}
+		case *dst.Ident:
+			// If we encounter ictx here, it means it wasn't part of a method
+			// call receiver (because we returned false above). So it is an
+			// invalid usage.
+			if n.Name == hookContextParam {
+				escape = true
+				return false
+			}
+		}
+		return true
+	})
+	return !escape
+}
+
+// flattenTJump transforms the trampoline-jump-if AST to a flattened form.
+// It sets the condition to false and empties the then block, effectively
+// converting the branching pattern to sequential execution.
 func flattenTJump(tjump *TJump, removedOnExit bool) error {
 	// The current standard tjump pattern is as follows:
 	//
@@ -230,70 +291,16 @@ func flattenTJump(tjump *TJump, removedOnExit bool) error {
 	// calls (e.g. assignment, pass as args, etc.), then the HookContext parameter
 	// does not escape, and the tjump represents a valid candidate for optimization.
 	// This would significantly boost performance.
-	hookFunc, err := getHookFunc(tjump.rule, true)
-	if err != nil {
-		return err
-	}
-	// Check if the hook function contains any "SetSkipCall" string
-	found := false
-	dst.Inspect(hookFunc, func(node dst.Node) bool {
-		if ident, ok := node.(*dst.Ident); ok {
-			if strings.Contains(ident.Name, trampolineSetSkipCallName) {
-				found = true
-				return false
-			}
-		}
-		if found {
-			return false
-		}
-		return true
-	})
-	if found {
-		return nil
-	}
-
-	// Check if the hook context parameter is used for any other purpose than
-	// method calls
-	escape := false
-	hookContextParam := hookFunc.Type.Params.List[0].Names[0].Name
-	if hookContextParam != ast.IdentIgnore {
-		dst.Inspect(hookFunc.Body, func(n dst.Node) bool {
-			if escape {
-				return false
-			}
-			switch n := n.(type) {
-			case *dst.SelectorExpr:
-				// Check if ictx is used as method receiver: ictx.Method()
-				if id, ok := n.X.(*dst.Ident); ok && id.Name == hookContextParam {
-					// Valid usage.
-					// Return false to stop visiting children, so we don't visit
-					// the Ident "ictx", which would be caught by the case below.
-					return false
-				}
-			case *dst.Ident:
-				// If we encounter ictx here, it means it wasn't part of a method
-				// call receiver (because we returned false above). So it is an
-				// invalid usage.
-				if n.Name == hookContextParam {
-					escape = true
-					return false
-				}
-			}
-			return true
-		})
-	}
-	if escape {
-		return nil
-	}
-
-	// Flatten the trampoline-jump-if to sequential function calls
 	ifStmt := tjump.ifStmt
 	initStmt, ok := ifStmt.Init.(*dst.AssignStmt)
 	const twoLhs = 2
 	util.Assert(ok, "init statement is not an AssignStmt")
 	util.Assert(len(initStmt.Lhs) == twoLhs, "must have two lhs")
+
+	// Set condition to false and empty the then block
 	ifStmt.Cond = ast.BoolFalse()
 	ifStmt.Body = ast.Block(ast.EmptyStmt())
+
 	if removedOnExit {
 		// We removed the last reference to hook context after nulling out body
 		// block, at this point, all lhs are unused, replace assignment to simple
@@ -352,9 +359,15 @@ func (ip *InstrumentPhase) optimizeTJumps() error {
 		// This further simplifies the trampoline-jump-if and gives more chances
 		// for optimization passes to kick in.
 		if rule.Before != "" {
-			err := flattenTJump(tjump, removedOnExit)
+			hookFunc, err := getHookFunc(tjump.rule, true)
 			if err != nil {
 				return err
+			}
+			if canFlattenTJump(hookFunc) {
+				err1 := flattenTJump(tjump, removedOnExit)
+				if err1 != nil {
+					return err1
+				}
 			}
 		}
 	}
