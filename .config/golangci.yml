@@ -314,6 +314,7 @@ linters:
         - os.WriteFile
         - prometheus.ExponentialBuckets.*
         - prometheus.LinearBuckets
+        - util.Assert # assertion message already explains the magic
 
     nakedret:
       # Make an issue if func has more lines of code than this setting, and it has naked returns.
