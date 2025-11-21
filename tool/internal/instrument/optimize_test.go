@@ -303,7 +303,7 @@ func TestStripTJumpLabel(t *testing.T) {
 			tjump := &TJump{ifStmt: ifStmt}
 
 			stripTJumpLabel(tjump)
-			assert.Empty(t, len(ifStmt.Decs.If))
+			assert.Empty(t, ifStmt.Decs.If)
 		})
 	}
 }
