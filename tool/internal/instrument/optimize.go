@@ -139,8 +139,8 @@ func newHookContextImpl(tjump *TJump) dst.Expr {
 	// Build the struct literal: &HookContextImpl{params:..., returnVals:...}
 	return ast.StructLit(
 		structName,
-		ast.KeyValueExpr("params", paramsSlice),
-		ast.KeyValueExpr("returnVals", returnValsSlice),
+		ast.KeyValueExpr(trampolineParamsIdentifier, paramsSlice),
+		ast.KeyValueExpr(trampolineReturnValsIdentifier, returnValsSlice),
 	)
 }
 

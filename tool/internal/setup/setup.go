@@ -81,7 +81,6 @@ func Setup(ctx context.Context, args []string) error {
 	if err != nil {
 		return err
 	}
-	sp.Info("Setup completed successfully")
 	return nil
 }
 
@@ -143,9 +142,12 @@ func GoBuild(ctx context.Context, args []string) error {
 	if err != nil {
 		return err
 	}
+	logger.InfoContext(ctx, "Setup completed successfully")
+
 	err = BuildWithToolexec(ctx, args)
 	if err != nil {
 		return err
 	}
+	logger.InfoContext(ctx, "Instrumentation completed successfully")
 	return nil
 }
