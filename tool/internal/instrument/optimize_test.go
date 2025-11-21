@@ -285,7 +285,6 @@ func TestStripTJumpLabel(t *testing.T) {
 				// do something
 			}`,
 			extraDecorations: []string{"other-decoration"},
-			expectedAfter:    1,
 		},
 		{
 			name: "strips label from multiple decorations",
@@ -293,7 +292,6 @@ func TestStripTJumpLabel(t *testing.T) {
 				// do something
 			}`,
 			extraDecorations: []string{"decoration1", "decoration2"},
-			expectedAfter:    2,
 		},
 	}
 
@@ -305,12 +303,8 @@ func TestStripTJumpLabel(t *testing.T) {
 
 			tjump := &TJump{ifStmt: ifStmt}
 
-			initialCount := len(ifStmt.Decs.If)
 			stripTJumpLabel(tjump)
-			finalCount := len(ifStmt.Decs.If)
-
-			assert.Equal(t, tt.expectedAfter, finalCount)
-			assert.Equal(t, initialCount-1, finalCount, "should remove exactly one decoration")
+			assert.Zero(t, len(ifStmt.Decs.If))
 		})
 	}
 }

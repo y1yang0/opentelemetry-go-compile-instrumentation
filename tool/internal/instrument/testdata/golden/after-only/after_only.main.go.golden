@@ -15,9 +15,7 @@ func Func1(p1 string, p2 int) (_unnamedRetVal0 float32, _unnamedRetVal1 error) {
 	//line <generated>:1
 	if false {
 	} else {
-		defer OtelAfterTrampoline_Func13335793671(&HookContextImpl3335793671{params: []interface {
-		}{&p1, &p2}, returnVals: []interface {
-		}{&_unnamedRetVal0, &_unnamedRetVal1}}, &_unnamedRetVal0, &_unnamedRetVal1)
+		defer OtelAfterTrampoline_Func13335793671(&HookContextImpl3335793671{params: []interface{}{&p1, &p2}, returnVals: []interface{}{&_unnamedRetVal0, &_unnamedRetVal1}}, &_unnamedRetVal0, &_unnamedRetVal1)
 	}
 	//line main.go:13:2
 	println("Hello, World!")
