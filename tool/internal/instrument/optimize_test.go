@@ -277,7 +277,6 @@ func TestStripTJumpLabel(t *testing.T) {
 		name             string
 		source           string
 		extraDecorations []string
-		expectedAfter    int
 	}{
 		{
 			name: "strips single label",
@@ -304,7 +303,7 @@ func TestStripTJumpLabel(t *testing.T) {
 			tjump := &TJump{ifStmt: ifStmt}
 
 			stripTJumpLabel(tjump)
-			assert.Zero(t, len(ifStmt.Decs.If))
+			assert.Empty(t, len(ifStmt.Decs.If))
 		})
 	}
 }
