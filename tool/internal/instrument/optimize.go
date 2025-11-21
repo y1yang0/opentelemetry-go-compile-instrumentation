@@ -316,7 +316,7 @@ func flattenTJump(tjump *TJump, removedOnExit bool) error {
 
 func stripTJumpLabel(tjump *TJump) {
 	ifStmt := tjump.ifStmt
-	ifStmt.Decs.If = ifStmt.Decs.If[1:]
+	ifStmt.Decs.If = nil
 }
 
 func (ip *InstrumentPhase) optimizeTJumps() error {
