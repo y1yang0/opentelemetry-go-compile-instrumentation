@@ -139,8 +139,8 @@ func newHookContextImpl(tjump *TJump) dst.Expr {
 	// Build the struct literal: &HookContextImpl{params:..., returnVals:...}
 	return ast.StructLit(
 		structName,
-		ast.KeyValueExpr("params", paramsSlice),
-		ast.KeyValueExpr("returnVals", returnValsSlice),
+		ast.KeyValueExpr(trampolineParamsIdentifier, paramsSlice),
+		ast.KeyValueExpr(trampolineReturnValsIdentifier, returnValsSlice),
 	)
 }
 
@@ -316,7 +316,7 @@ func flattenTJump(tjump *TJump, removedOnExit bool) error {
 
 func stripTJumpLabel(tjump *TJump) {
 	ifStmt := tjump.ifStmt
-	ifStmt.Decs.If = ifStmt.Decs.If[1:]
+	ifStmt.Decs.If = nil
 }
 
 func (ip *InstrumentPhase) optimizeTJumps() error {
