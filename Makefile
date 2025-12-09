@@ -262,7 +262,11 @@ test-unit/pkg/coverage: package gotestfmt ## Run unit tests with coverage for pk
 	@echo "Running pkg unit tests with coverage..."
 	set -euo pipefail
 	ROOT_DIR=$$(pwd); \
-	PKG_MODULES=$$(find pkg -name "go.mod" -type f -exec dirname {} \; | grep -v "pkg/instrumentation/runtime" | grep -v "pkg/instrumentation/nethttp/semconv"); \
+	PKG_MODULES=$$(find pkg -name "go.mod" -type f \
+							-not -path "pkg/instrumentation/nethttp/semconv" \
+							-not -path "pkg/instrumentation/runtime" \
+							-not -path "pkg/instrumentation/helloworld" \
+	 						-exec dirname {} \; ); \
 	for moddir in $$PKG_MODULES; do \
 		echo "Testing $$moddir..."; \
 		(cd $$moddir && go mod tidy && go test -json -v -shuffle=on -timeout=5m -count=1 ./... -coverprofile=coverage-pkg.txt -covermode=atomic 2>&1 | tee -a ../../gotest-unit-pkg.log | gotestfmt); \
