@@ -263,9 +263,9 @@ test-unit/pkg/coverage: package gotestfmt ## Run unit tests with coverage for pk
 	set -euo pipefail
 	ROOT_DIR=$$(pwd); \
 	PKG_MODULES=$$(find pkg -name "go.mod" -type f \
-							-not -path "pkg/instrumentation/nethttp/semconv" \
-							-not -path "pkg/instrumentation/runtime" \
-							-not -path "pkg/instrumentation/helloworld" \
+							-not -path "pkg/instrumentation/nethttp/semconv/*" \
+							-not -path "pkg/instrumentation/runtime/*" \
+							-not -path "pkg/instrumentation/helloworld/*" \
 	 						-exec dirname {} \; ); \
 	for moddir in $$PKG_MODULES; do \
 		echo "Testing $$moddir..."; \
