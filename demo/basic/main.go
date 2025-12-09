@@ -3,10 +3,20 @@
 
 package main
 
+// #include <stdio.h>
+// #include <stdlib.h>
+//
+// static void myCprint(char* s) {
+//   printf("%s\n", s);
+//   fflush(stdout);
+// }
+import "C"
+
 import (
 	"fmt"
 	"runtime"
 	"time"
+	"unsafe"
 
 	"golang.org/x/time/rate"
 )
@@ -80,6 +90,11 @@ func main() {
 
 	// Call real module function
 	println(rate.Every(time.Duration(1)))
+
+	// Support cgo
+	cs := C.CString("Hello from stdio")
+	C.myCprint(cs)
+	C.free(unsafe.Pointer(cs))
 
 	Ellipsis("a", "b")
 }
