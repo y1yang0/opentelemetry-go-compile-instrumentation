@@ -64,6 +64,8 @@ func Example() {
 
 func Underscore(_ int, _ float32) {}
 
+func Ellipsis(p1 ...string) {}
+
 func main() {
 	context := &traceContext{
 		traceID: "123",
@@ -93,4 +95,6 @@ func main() {
 	cs := C.CString("Hello from stdio")
 	C.myCprint(cs)
 	C.free(unsafe.Pointer(cs))
+
+	Ellipsis("a", "b")
 }

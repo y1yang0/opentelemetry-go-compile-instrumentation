@@ -511,7 +511,7 @@ func (ip *InstrumentPhase) buildHookSignature(traits []ParamTrait, before bool) 
 			// Hook explicitly uses interface{} for this parameter
 			field.Type = ast.InterfaceType()
 		} else {
-			field.Type = replaceTypeParamsWithAny(field.Type, genericTypes)
+			field.Type = replaceTypeParamsWithAny(desugarType(field), genericTypes)
 		}
 	}
 	return paramTypes, nil

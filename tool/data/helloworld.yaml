@@ -72,3 +72,9 @@ hook_generic_recv:
   before: MyHookRecvBefore
   after: MyHookRecvAfter
   path: "github.com/open-telemetry/opentelemetry-go-compile-instrumentation/pkg/instrumentation/helloworld"
+
+hook_ellipsis:
+  target: main
+  func: Ellipsis
+  before: MyHookEllipsisBefore
+  path: "github.com/open-telemetry/opentelemetry-go-compile-instrumentation/pkg/instrumentation/helloworld"
