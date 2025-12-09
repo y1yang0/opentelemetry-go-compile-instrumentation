@@ -32,4 +32,6 @@ func (g *GenStruct[T]) GenericMethod(p1 T, p2 string) (T, error) {
 	return p1, nil
 }
 
+func EllipsisFunc(p1 ...string) {}
+
 func main() { Func1("hello", 123) }

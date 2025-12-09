@@ -54,6 +54,8 @@ func Example() {
 
 func Underscore(_ int, _ float32) {}
 
+func Ellipsis(p1 ...string) {}
+
 func main() {
 	context := &traceContext{
 		traceID: "123",
@@ -78,4 +80,6 @@ func main() {
 
 	// Call real module function
 	println(rate.Every(time.Duration(1)))
+
+	Ellipsis("a", "b")
 }

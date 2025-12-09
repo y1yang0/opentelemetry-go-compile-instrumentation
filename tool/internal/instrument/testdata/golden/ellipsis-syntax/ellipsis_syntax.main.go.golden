@@ -11,14 +11,8 @@ func (t *T) Func1(p1 string, p2 int) (float32, error) {
 	return 0.0, nil
 }
 
-func Func1(p1 string, p2 int) (_unnamedRetVal0 float32, _unnamedRetVal1 error) {
-	//line <generated>:1
-	if OtelBeforeTrampoline_Func12350319093(&p1, &p2); false {
-	} else {
-	}
-	//line main.go:13:2
+func Func1(p1 string, p2 int) (float32, error) {
 	println("Hello, World!")
-	//line main.go:14:2
 	return 0.0, nil
 }
 
@@ -40,7 +34,13 @@ func (g *GenStruct[T]) GenericMethod(p1 T, p2 string) (T, error) {
 	return p1, nil
 }
 
-func EllipsisFunc(p1 ...string) {}
+func EllipsisFunc(p1 ...string) {
+	//line <generated>:1
+	if OtelBeforeTrampoline_EllipsisFunc2350319093(&p1); false {
+	} else {
+	}
+	//line main.go:35:33
+}
 
 func main() { Func1("hello", 123) }
 
@@ -83,9 +83,7 @@ func (c *HookContextImpl2350319093) HasKeyData(key string) bool {
 func (c *HookContextImpl2350319093) GetParam(idx int) interface{} {
 	switch idx {
 	case 0:
-		return *(c.params[0].(*string))
-	case 1:
-		return *(c.params[1].(*int))
+		return *(c.params[0].(*[]string))
 	}
 	return nil
 }
@@ -97,18 +95,12 @@ func (c *HookContextImpl2350319093) SetParam(idx int, val interface{}) {
 	}
 	switch idx {
 	case 0:
-		*(c.params[0].(*string)) = val.(string)
-	case 1:
-		*(c.params[1].(*int)) = val.(int)
+		*(c.params[0].(*[]string)) = val.([]string)
 	}
 }
 
 func (c *HookContextImpl2350319093) GetReturnVal(idx int) interface{} {
 	switch idx {
-	case 0:
-		return *(c.returnVals[0].(*float32))
-	case 1:
-		return *(c.returnVals[1].(*error))
 	}
 	return nil
 }
@@ -119,10 +111,6 @@ func (c *HookContextImpl2350319093) SetReturnVal(idx int, val interface{}) {
 		return
 	}
 	switch idx {
-	case 0:
-		*(c.returnVals[0].(*float32)) = val.(float32)
-	case 1:
-		*(c.returnVals[1].(*error)) = val.(error)
 	}
 }
 func (c *HookContextImpl2350319093) GetParamCount() int     { return len(c.params) }
@@ -131,10 +119,10 @@ func (c *HookContextImpl2350319093) GetFuncName() string    { return c.funcName 
 func (c *HookContextImpl2350319093) GetPackageName() string { return c.packageName }
 
 // Trampoline Template
-func OtelBeforeTrampoline_Func12350319093(param0 *string, param1 *int) (hookContext *HookContextImpl2350319093, skipCall bool) {
+func OtelBeforeTrampoline_EllipsisFunc2350319093(param0 *[]string) (hookContext *HookContextImpl2350319093, skipCall bool) {
 	defer func() {
 		if err := recover(); err != nil {
-			println("failed to exec Before hook", "H1Before")
+			println("failed to exec Before hook", "H9Before")
 			if e, ok := err.(error); ok {
 				println(e.Error())
 			}
@@ -145,16 +133,16 @@ func OtelBeforeTrampoline_Func12350319093(param0 *string, param1 *int) (hookCont
 		}
 	}()
 	hookContext = &HookContextImpl2350319093{}
-	hookContext.params = []interface{}{param0, param1}
-	hookContext.funcName = "Func1"
+	hookContext.params = []interface{}{param0}
+	hookContext.funcName = "EllipsisFunc"
 	hookContext.packageName = "main"
-	if H1Before != nil {
-		H1Before(hookContext, *param0, *param1)
+	if H9Before != nil {
+		H9Before(hookContext, *param0)
 	}
 	return hookContext, hookContext.skipCall
 }
 
-func OtelAfterTrampoline_Func12350319093(hookContext HookContext) {
+func OtelAfterTrampoline_EllipsisFunc2350319093(hookContext HookContext) {
 	defer func() {
 		if err := recover(); err != nil {
 			println("failed to exec After hook", "")
@@ -170,5 +158,5 @@ func OtelAfterTrampoline_Func12350319093(hookContext HookContext) {
 	hookContext.(*HookContextImpl2350319093).returnVals = []interface{}{}
 }
 
-//go:linkname H1Before testdata.H1Before
-func H1Before(hookContext HookContext, param0 string, param1 int)
+//go:linkname H9Before testdata.H9Before
+func H9Before(hookContext HookContext, param0 []string)
