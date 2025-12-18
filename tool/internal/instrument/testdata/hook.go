@@ -35,7 +35,7 @@ func H7After(ctx inst.HookContext) { _ = ctx }
 
 func H8After(ctx inst.HookContext, ret1 float32, ret2 error) {}
 
-func H9Before(ctx inst.HookContext, p1 []string) {}
+func H9Before(ctx inst.HookContext, p1 ...string) {}
 
 func H10Before(ctx inst.HookContext, _ int, _ float32) {}
 

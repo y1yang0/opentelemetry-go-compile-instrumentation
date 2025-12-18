@@ -28,9 +28,9 @@ Highlights:
 ### 1. Build the Tool
 
 ```bash
-git clone https://github.com/open-telemetry/opentelemetry-go-compile-instrumentation.git
-cd opentelemetry-go-compile-instrumentation
-make build
+$ git clone https://github.com/open-telemetry/opentelemetry-go-compile-instrumentation.git
+$ cd opentelemetry-go-compile-instrumentation
+$ make build
 ```
 
 The `otel` binary will be built in the root directory.
@@ -40,16 +40,16 @@ The `otel` binary will be built in the root directory.
 Just prefix the original `go build` command with `otel`.
 
 ```bash
-cd demo/basic
-../../otel go build
-./basic
+$ cd demo/basic
+$ ../../otel go build
+$ ./basic
 [... output ...]
 ```
 
 ### 3. Run the Tests
 
 ```bash
-make test
+$ make test
 ```
 
 ## Community
