@@ -97,4 +97,6 @@ func main() {
 	C.free(unsafe.Pointer(cs))
 
 	Ellipsis("a", "b")
+
+	Underscore(1, 2)
 }
