@@ -109,5 +109,7 @@ func main() {
 
 	Ellipsis("a", "b")
 
+	Underscore(1, 2)
+
 	FunctionA(context.Background())
 }
