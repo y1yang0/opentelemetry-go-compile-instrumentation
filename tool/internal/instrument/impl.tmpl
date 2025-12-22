@@ -75,19 +75,19 @@ func (c *HookContextImpl) GetPackageName() string { return c.packageName }
 
 // Variable Template
 var (
-	OtelGetStackImpl   func() []byte = nil
-	OtelPrintStackImpl func([]byte)  = nil
+	OtelcGetStackImpl   func() []byte = nil
+	OtelcPrintStackImpl func([]byte)  = nil
 )
 
 // Trampoline Template
-func OtelBeforeTrampoline() (hookContext *HookContextImpl, skipCall bool) {
+func OtelcBeforeTrampoline() (hookContext *HookContextImpl, skipCall bool) {
 	defer func() {
 		if err := recover(); err != nil {
-			println("failed to exec Before hook", "OtelBeforeNamePlaceholder")
+			println("failed to exec Before hook", "OtelcBeforeNamePlaceholder")
 			if e, ok := err.(error); ok {
 				println(e.Error())
 			}
-			fetchStack, printStack := OtelGetStackImpl, OtelPrintStackImpl
+			fetchStack, printStack := OtelcGetStackImpl, OtelcPrintStackImpl
 			if fetchStack != nil && printStack != nil {
 				printStack(fetchStack())
 			}
@@ -100,14 +100,14 @@ func OtelBeforeTrampoline() (hookContext *HookContextImpl, skipCall bool) {
 	return hookContext, hookContext.skipCall
 }
 
-func OtelAfterTrampoline(hookContext HookContext) {
+func OtelcAfterTrampoline(hookContext HookContext) {
 	defer func() {
 		if err := recover(); err != nil {
-			println("failed to exec After hook", "OtelAfterNamePlaceholder")
+			println("failed to exec After hook", "OtelcAfterNamePlaceholder")
 			if e, ok := err.(error); ok {
 				println(e.Error())
 			}
-			fetchStack, printStack := OtelGetStackImpl, OtelPrintStackImpl
+			fetchStack, printStack := OtelcGetStackImpl, OtelcPrintStackImpl
 			if fetchStack != nil && printStack != nil {
 				printStack(fetchStack())
 			}

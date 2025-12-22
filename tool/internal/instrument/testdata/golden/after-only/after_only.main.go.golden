@@ -11,7 +11,7 @@ func (t *T) Func1(p1 string, p2 int) (_unnamedRetVal0 float32, _unnamedRetVal1 e
 	//line <generated>:1
 	if false {
 	} else {
-		defer OtelAfterTrampoline_Func11091117693(&HookContextImpl1091117693{params: []interface{}{&t, &p1, &p2}, returnVals: []interface{}{&_unnamedRetVal0, &_unnamedRetVal1}}, &_unnamedRetVal0, &_unnamedRetVal1)
+		defer OtelcAfterTrampoline_Func11091117693(&HookContextImpl1091117693{params: []interface{}{&t, &p1, &p2}, returnVals: []interface{}{&_unnamedRetVal0, &_unnamedRetVal1}}, &_unnamedRetVal0, &_unnamedRetVal1)
 	}
 	//line main.go:9:2
 	return 0.0, nil
@@ -21,7 +21,7 @@ func Func1(p1 string, p2 int) (_unnamedRetVal0 float32, _unnamedRetVal1 error) {
 	//line <generated>:1
 	if false {
 	} else {
-		defer OtelAfterTrampoline_Func13335793671(&HookContextImpl3335793671{params: []interface{}{&p1, &p2}, returnVals: []interface{}{&_unnamedRetVal0, &_unnamedRetVal1}}, &_unnamedRetVal0, &_unnamedRetVal1)
+		defer OtelcAfterTrampoline_Func13335793671(&HookContextImpl3335793671{params: []interface{}{&p1, &p2}, returnVals: []interface{}{&_unnamedRetVal0, &_unnamedRetVal1}}, &_unnamedRetVal0, &_unnamedRetVal1)
 	}
 	//line main.go:13:2
 	println("Hello, World!")
@@ -139,14 +139,14 @@ func (c *HookContextImpl3335793671) GetReturnValCount() int { return len(c.retur
 func (c *HookContextImpl3335793671) GetFuncName() string    { return c.funcName }
 func (c *HookContextImpl3335793671) GetPackageName() string { return c.packageName }
 
-func OtelAfterTrampoline_Func13335793671(hookContext HookContext, arg0 *float32, arg1 *error) {
+func OtelcAfterTrampoline_Func13335793671(hookContext HookContext, arg0 *float32, arg1 *error) {
 	defer func() {
 		if err := recover(); err != nil {
 			println("failed to exec After hook", "H1After")
 			if e, ok := err.(error); ok {
 				println(e.Error())
 			}
-			fetchStack, printStack := OtelGetStackImpl, OtelPrintStackImpl
+			fetchStack, printStack := OtelcGetStackImpl, OtelcPrintStackImpl
 			if fetchStack != nil && printStack != nil {
 				printStack(fetchStack())
 			}
@@ -251,14 +251,14 @@ func (c *HookContextImpl1091117693) GetReturnValCount() int { return len(c.retur
 func (c *HookContextImpl1091117693) GetFuncName() string    { return c.funcName }
 func (c *HookContextImpl1091117693) GetPackageName() string { return c.packageName }
 
-func OtelAfterTrampoline_Func11091117693(hookContext HookContext, arg0 *float32, arg1 *error) {
+func OtelcAfterTrampoline_Func11091117693(hookContext HookContext, arg0 *float32, arg1 *error) {
 	defer func() {
 		if err := recover(); err != nil {
 			println("failed to exec After hook", "H8After")
 			if e, ok := err.(error); ok {
 				println(e.Error())
 			}
-			fetchStack, printStack := OtelGetStackImpl, OtelPrintStackImpl
+			fetchStack, printStack := OtelcGetStackImpl, OtelcPrintStackImpl
 			if fetchStack != nil && printStack != nil {
 				printStack(fetchStack())
 			}

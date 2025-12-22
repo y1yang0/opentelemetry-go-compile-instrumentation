@@ -10,9 +10,9 @@ import (
 )
 
 const (
-	EnvOtelWorkDir = "OTEL_WORK_DIR"
-	BuildTempDir   = ".otel-build"
-	OtelRoot       = "github.com/open-telemetry/opentelemetry-go-compile-instrumentation"
+	EnvOtelcWorkDir = "OTELC_WORK_DIR"
+	BuildTempDir    = ".otelc-build"
+	OtelcRoot       = "github.com/open-telemetry/opentelemetry-go-compile-instrumentation"
 )
 
 func GetMatchedRuleFile() string {
@@ -20,8 +20,8 @@ func GetMatchedRuleFile() string {
 	return GetBuildTemp(matchedRuleFile)
 }
 
-func GetOtelWorkDir() string {
-	wd := os.Getenv(EnvOtelWorkDir)
+func GetOtelcWorkDir() string {
+	wd := os.Getenv(EnvOtelcWorkDir)
 	if wd == "" {
 		wd, _ = os.Getwd()
 		return wd
@@ -31,12 +31,12 @@ func GetOtelWorkDir() string {
 
 // GetBuildTemp returns the path to the build temp directory $BUILD_TEMP/name
 func GetBuildTempDir() string {
-	return filepath.Join(GetOtelWorkDir(), BuildTempDir)
+	return filepath.Join(GetOtelcWorkDir(), BuildTempDir)
 }
 
 // GetBuildTemp returns the path to the build temp directory $BUILD_TEMP/name
 func GetBuildTemp(name string) string {
-	return filepath.Join(GetOtelWorkDir(), BuildTempDir, name)
+	return filepath.Join(GetOtelcWorkDir(), BuildTempDir, name)
 }
 
 func copyBackupFiles(names []string, src, dst string) error {

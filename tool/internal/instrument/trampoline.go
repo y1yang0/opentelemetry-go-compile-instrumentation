@@ -30,8 +30,8 @@ import (
 // its name suggests, it jumps to the trampoline function from raw function.
 
 const (
-	trampolineBeforeName            = "OtelBeforeTrampoline"
-	trampolineAfterName             = "OtelAfterTrampoline"
+	trampolineBeforeName            = "OtelcBeforeTrampoline"
+	trampolineAfterName             = "OtelcAfterTrampoline"
 	trampolineHookContextName       = "hookContext"
 	trampolineHookContextType       = "HookContext"
 	trampolineSkipName              = "skip"
@@ -47,8 +47,8 @@ const (
 	trampolinePackageNameIdentifier = "packageName"
 	trampolineReturnValsIdentifier  = "returnVals"
 	trampolineHookContextImplType   = "HookContextImpl"
-	trampolineBeforeNamePlaceholder = `"OtelBeforeNamePlaceholder"`
-	trampolineAfterNamePlaceholder  = `"OtelAfterNamePlaceholder"`
+	trampolineBeforeNamePlaceholder = `"OtelcBeforeNamePlaceholder"`
+	trampolineAfterNamePlaceholder  = `"OtelcAfterNamePlaceholder"`
 	trampolineBefore                = true
 	trampolineAfter                 = false
 	unsafePackageName               = "unsafe"
@@ -355,7 +355,7 @@ func (ip *InstrumentPhase) renameTrampFunc(t *rule.InstFuncRule) {
 	ip.beforeTrampFunc.Name.Name = makeName(t, ip.targetFunc, trampolineBefore)
 	dst.Inspect(ip.beforeTrampFunc, func(node dst.Node) bool {
 		if basicLit, ok := node.(*dst.BasicLit); ok {
-			// Replace OtelBeforeTrampolinePlaceHolder to real hook func name
+			// Replace OtelcBeforeTrampolinePlaceHolder to real hook func name
 			if basicLit.Value == trampolineBeforeNamePlaceholder {
 				basicLit.Value = strconv.Quote(t.Before)
 			}

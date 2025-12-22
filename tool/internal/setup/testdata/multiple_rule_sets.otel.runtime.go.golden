@@ -4,18 +4,18 @@ package main
 import _ "github.com/example/pkg"
 import _ "github.com/example/pkg1"
 import _ "github.com/example/pkg2"
-import _otel_log "log"
-import _otel_debug "runtime/debug"
+import _otelc_log "log"
+import _otelc_debug "runtime/debug"
 import _ "unsafe"
 
-//go:linkname _getstatck0 github.com/example/pkg1.OtelGetStackImpl
-var _getstatck0 = _otel_debug.Stack
+//go:linkname _getstatck0 github.com/example/pkg1.OtelcGetStackImpl
+var _getstatck0 = _otelc_debug.Stack
 
-//go:linkname _printstack0 github.com/example/pkg1.OtelPrintStackImpl
-var _printstack0 = func(bt []byte) { _otel_log.Printf(string(bt)) }
+//go:linkname _printstack0 github.com/example/pkg1.OtelcPrintStackImpl
+var _printstack0 = func(bt []byte) { _otelc_log.Printf(string(bt)) }
 
-//go:linkname _getstatck1 github.com/example/pkg2.OtelGetStackImpl
-var _getstatck1 = _otel_debug.Stack
+//go:linkname _getstatck1 github.com/example/pkg2.OtelcGetStackImpl
+var _getstatck1 = _otelc_debug.Stack
 
-//go:linkname _printstack1 github.com/example/pkg2.OtelPrintStackImpl
-var _printstack1 = func(bt []byte) { _otel_log.Printf(string(bt)) }
+//go:linkname _printstack1 github.com/example/pkg2.OtelcPrintStackImpl
+var _printstack1 = func(bt []byte) { _otelc_log.Printf(string(bt)) }

@@ -36,7 +36,7 @@ func (g *GenStruct[T]) GenericMethod(p1 T, p2 string) (T, error) {
 
 func EllipsisFunc(p1 ...string) {
 	//line <generated>:1
-	if OtelBeforeTrampoline_EllipsisFunc2350319093(&p1); false {
+	if OtelcBeforeTrampoline_EllipsisFunc2350319093(&p1); false {
 	} else {
 	}
 	//line main.go:35:33
@@ -121,14 +121,14 @@ func (c *HookContextImpl2350319093) GetFuncName() string    { return c.funcName 
 func (c *HookContextImpl2350319093) GetPackageName() string { return c.packageName }
 
 // Trampoline Template
-func OtelBeforeTrampoline_EllipsisFunc2350319093(param0 *[]string) (hookContext *HookContextImpl2350319093, skipCall bool) {
+func OtelcBeforeTrampoline_EllipsisFunc2350319093(param0 *[]string) (hookContext *HookContextImpl2350319093, skipCall bool) {
 	defer func() {
 		if err := recover(); err != nil {
 			println("failed to exec Before hook", "H9Before")
 			if e, ok := err.(error); ok {
 				println(e.Error())
 			}
-			fetchStack, printStack := OtelGetStackImpl, OtelPrintStackImpl
+			fetchStack, printStack := OtelcGetStackImpl, OtelcPrintStackImpl
 			if fetchStack != nil && printStack != nil {
 				printStack(fetchStack())
 			}
@@ -144,14 +144,14 @@ func OtelBeforeTrampoline_EllipsisFunc2350319093(param0 *[]string) (hookContext 
 	return hookContext, hookContext.skipCall
 }
 
-func OtelAfterTrampoline_EllipsisFunc2350319093(hookContext HookContext) {
+func OtelcAfterTrampoline_EllipsisFunc2350319093(hookContext HookContext) {
 	defer func() {
 		if err := recover(); err != nil {
 			println("failed to exec After hook", "")
 			if e, ok := err.(error); ok {
 				println(e.Error())
 			}
-			fetchStack, printStack := OtelGetStackImpl, OtelPrintStackImpl
+			fetchStack, printStack := OtelcGetStackImpl, OtelcPrintStackImpl
 			if fetchStack != nil && printStack != nil {
 				printStack(fetchStack())
 			}

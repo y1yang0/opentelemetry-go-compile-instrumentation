@@ -145,7 +145,7 @@ func Setup(ctx context.Context, args []string) error {
 		logger: logger,
 	}
 
-	// Introduce additional hook code by generating otel.runtime.go
+	// Introduce additional hook code by generating otelc.runtime.go
 	// Use GetPackage to determine the build target directory
 	pkgs, err := getBuildPackages(ctx, args)
 	if err != nil {
@@ -169,7 +169,7 @@ func Setup(ctx context.Context, args []string) error {
 		return err
 	}
 
-	// Generate otel.runtime.go for all packages
+	// Generate otelc.runtime.go for all packages
 	moduleDirs := make(map[string]bool)
 	for _, pkg := range pkgs {
 		if pkg.Module == nil {
@@ -181,7 +181,7 @@ func Setup(ctx context.Context, args []string) error {
 		if pkgDir == "" {
 			pkgDir = moduleDir
 		}
-		// Introduce additional hook code by generating otel.runtime.go
+		// Introduce additional hook code by generating otelc.runtime.go
 		if err = sp.addDeps(matched, pkgDir); err != nil {
 			return err
 		}
@@ -203,7 +203,7 @@ func Setup(ctx context.Context, args []string) error {
 func BuildWithToolexec(ctx context.Context, args []string) error {
 	logger := util.LoggerFromContext(ctx)
 
-	// Add -toolexec=otel to the original build command and run it
+	// Add -toolexec=otelc to the original build command and run it
 	execPath, err := os.Executable()
 	if err != nil {
 		return ex.Wrapf(err, "failed to get executable path")
@@ -228,9 +228,9 @@ func BuildWithToolexec(ctx context.Context, args []string) error {
 
 	// Tell the sub-process the working directory
 	env := os.Environ()
-	pwd := util.GetOtelWorkDir()
+	pwd := util.GetOtelcWorkDir()
 	util.Assert(pwd != "", "invalid working directory")
-	env = append(env, fmt.Sprintf("%s=%s", util.EnvOtelWorkDir, pwd))
+	env = append(env, fmt.Sprintf("%s=%s", util.EnvOtelcWorkDir, pwd))
 
 	return util.RunCmdWithEnv(ctx, env, newArgs...)
 }
@@ -249,9 +249,9 @@ func GoBuild(ctx context.Context, args []string) error {
 			logger.DebugContext(ctx, "failed to get build packages", "error", err)
 		}
 		for _, pkg := range pkgs {
-			if err = os.RemoveAll(filepath.Join(pkg.Dir, OtelRuntimeFile)); err != nil {
+			if err = os.RemoveAll(filepath.Join(pkg.Dir, OtelcRuntimeFile)); err != nil {
 				logger.DebugContext(ctx, "failed to remove generated file from package",
-					"file", filepath.Join(pkg.Dir, OtelRuntimeFile), "error", err)
+					"file", filepath.Join(pkg.Dir, OtelcRuntimeFile), "error", err)
 			}
 		}
 		if err = os.RemoveAll(unzippedPkgDir); err != nil {

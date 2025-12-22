@@ -18,8 +18,8 @@ import (
 )
 
 const (
-	tJumpLabel      = "/* __TRAMPOLINE_JUMP_IF__ */"
-	otelGlobalsFile = "otel.globals.go"
+	tJumpLabel       = "/* __TRAMPOLINE_JUMP_IF__ */"
+	otelcGlobalsFile = "otelc.globals.go"
 )
 
 func makeName(r *rule.InstFuncRule, funcDecl *dst.FuncDecl, isBefore bool) string {
@@ -201,11 +201,11 @@ func (ip *InstrumentPhase) insertTJump(t *rule.InstFuncRule, funcDecl *dst.FuncD
 	// Generate the trampoline-jump-if. The trampoline-jump-if is a conditional
 	// jump that jumps to the trampoline function, it looks something like this
 	//
-	//	if ctx, skip := otel_trampoline_before(&arg); skip {
-	//	    otel_trampoline_after(ctx, &retval)
+	//	if ctx, skip := otelc_trampoline_before(&arg); skip {
+	//	    otelc_trampoline_after(ctx, &retval)
 	//	    return ...
 	//	} else {
-	//	    defer otel_trampoline_after(ctx, &retval)
+	//	    defer otelc_trampoline_after(ctx, &retval)
 	//	    ...
 	//	}
 	//
@@ -226,7 +226,7 @@ func (ip *InstrumentPhase) insertTJump(t *rule.InstFuncRule, funcDecl *dst.FuncD
 	// Trampoline-jump-if ultimately jumps to the trampoline function, which
 	// typically has the following form
 	//
-	//	func otel_trampoline_before(arg) (HookContext, bool) {
+	//	func otelc_trampoline_before(arg) (HookContext, bool) {
 	//	    defer func () { /* handle panic */ }()
 	//	    // prepare hook context for real hook code
 	//	    hookctx := &HookContextImpl_abc{}
@@ -268,7 +268,7 @@ func (ip *InstrumentPhase) writeGlobals(pkgName string) error {
 	trampoline.Decls = append(trampoline.Decls, api.Decls...)
 
 	// Write trampoline code to file
-	path := filepath.Join(ip.workDir, otelGlobalsFile)
+	path := filepath.Join(ip.workDir, otelcGlobalsFile)
 	err = ast.WriteFile(path, trampoline)
 	if err != nil {
 		return err

@@ -21,11 +21,11 @@ import (
 // we are trying to optimize them as much as possible. The standard form of
 // trampoline-jump-if looks like
 //
-//	if ctx, skip := otel_trampoline_before(&arg); skip {
-//	    otel_trampoline_after(ctx, &retval)
+//	if ctx, skip := otelc_trampoline_before(&arg); skip {
+//	    otelc_trampoline_after(ctx, &retval)
 //	    return ...
 //	} else {
-//	    defer otel_trampoline_after(ctx, &retval)
+//	    defer otelc_trampoline_after(ctx, &retval)
 //	    ...
 //	}
 //
@@ -35,8 +35,8 @@ import (
 // there might be more than one trampoline-jump-if in the same function, they are
 // nested in the else block, i.e.
 //
-//	if ctx, skip := otel_trampoline_before(&arg); skip {
-//	    otel_trampoline_after(ctx, &retval)
+//	if ctx, skip := otelc_trampoline_before(&arg); skip {
+//	    otelc_trampoline_after(ctx, &retval)
 //	    return ...
 //	} else {
 //	    ;
@@ -50,7 +50,7 @@ import (
 //	if false {
 //	    ;
 //	} else {
-//	    defer otel_trampoline_after(&HookContext{...}, &retval)
+//	    defer otelc_trampoline_after(&HookContext{...}, &retval)
 //	    ...
 //	}
 //
@@ -61,10 +61,10 @@ import (
 // of trampoline-jump-if to always false, remove return statement in then block,
 // they are memory-aware and may generate memory SSA values during compilation.
 //
-//	if ctx,_ := otel_trampoline_before(&arg); false {
+//	if ctx,_ := otelc_trampoline_before(&arg); false {
 //	    ;
 //	} else {
-//	    defer otel_trampoline_after(ctx, &retval)
+//	    defer otelc_trampoline_after(ctx, &retval)
 //	    ...
 //	}
 //
@@ -72,8 +72,8 @@ import (
 // if skeleton, and the dce and sccp passes will remove the whole then block. All
 // these trampoline functions looks as if they are executed sequentially, i.e.
 //
-//	ctx,_ := otel_trampoline_before(&arg);
-//	defer otel_trampoline_after(ctx, &retval)
+//	ctx,_ := otelc_trampoline_before(&arg);
+//	defer otelc_trampoline_after(ctx, &retval)
 //
 // Note that this optimization pass is fragile as it really heavily depends on
 // the structure of trampoline-jump-if and trampoline functions. Any change in
@@ -242,19 +242,19 @@ func canFlattenTJump(hookFunc *dst.FuncDecl) bool {
 func flattenTJump(tjump *TJump, removedOnExit bool) error {
 	// The current standard tjump pattern is as follows:
 	//
-	// 	if ctx, skip := otel_trampoline_before(&arg); skip {
-	// 		otel_trampoline_after(ctx, &retval)
+	// 	if ctx, skip := otelc_trampoline_before(&arg); skip {
+	// 		otelc_trampoline_after(ctx, &retval)
 	// 		return ...
 	// 	} else {
-	// 		defer otel_trampoline_after(ctx, &retval)
+	// 		defer otelc_trampoline_after(ctx, &retval)
 	// 		...
 	// 	}
 	//
 	// A key optimization opportunity lies in "skip", which is highly likely to
 	// be false. In this scenario, tjump can be optimized into the following form:
 	//
-	// 	ctx,_ := otel_trampoline_before(&arg);
-	// 	defer otel_trampoline_after(ctx, &retval)
+	// 	ctx,_ := otelc_trampoline_before(&arg);
+	// 	defer otelc_trampoline_after(ctx, &retval)
 	//
 	// Consider the following hook code
 	//

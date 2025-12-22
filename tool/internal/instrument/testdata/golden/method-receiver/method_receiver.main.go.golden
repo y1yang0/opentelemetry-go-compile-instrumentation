@@ -9,9 +9,9 @@ type T struct{}
 
 func (t *T) Func1(p1 string, p2 int) (_unnamedRetVal0 float32, _unnamedRetVal1 error) {
 	//line <generated>:1
-	if hookContext2501994857, _ := OtelBeforeTrampoline_Func12501994857(&t, &p1, &p2); false {
+	if hookContext2501994857, _ := OtelcBeforeTrampoline_Func12501994857(&t, &p1, &p2); false {
 	} else {
-		defer OtelAfterTrampoline_Func12501994857(hookContext2501994857, &_unnamedRetVal0, &_unnamedRetVal1)
+		defer OtelcAfterTrampoline_Func12501994857(hookContext2501994857, &_unnamedRetVal0, &_unnamedRetVal1)
 	}
 	//line main.go:9:2
 	return 0.0, nil
@@ -137,14 +137,14 @@ func (c *HookContextImpl2501994857) GetFuncName() string    { return c.funcName 
 func (c *HookContextImpl2501994857) GetPackageName() string { return c.packageName }
 
 // Trampoline Template
-func OtelBeforeTrampoline_Func12501994857(recv0 **T, param0 *string, param1 *int) (hookContext *HookContextImpl2501994857, skipCall bool) {
+func OtelcBeforeTrampoline_Func12501994857(recv0 **T, param0 *string, param1 *int) (hookContext *HookContextImpl2501994857, skipCall bool) {
 	defer func() {
 		if err := recover(); err != nil {
 			println("failed to exec Before hook", "H3Before")
 			if e, ok := err.(error); ok {
 				println(e.Error())
 			}
-			fetchStack, printStack := OtelGetStackImpl, OtelPrintStackImpl
+			fetchStack, printStack := OtelcGetStackImpl, OtelcPrintStackImpl
 			if fetchStack != nil && printStack != nil {
 				printStack(fetchStack())
 			}
@@ -160,14 +160,14 @@ func OtelBeforeTrampoline_Func12501994857(recv0 **T, param0 *string, param1 *int
 	return hookContext, hookContext.skipCall
 }
 
-func OtelAfterTrampoline_Func12501994857(hookContext HookContext, arg0 *float32, arg1 *error) {
+func OtelcAfterTrampoline_Func12501994857(hookContext HookContext, arg0 *float32, arg1 *error) {
 	defer func() {
 		if err := recover(); err != nil {
 			println("failed to exec After hook", "H3After")
 			if e, ok := err.(error); ok {
 				println(e.Error())
 			}
-			fetchStack, printStack := OtelGetStackImpl, OtelPrintStackImpl
+			fetchStack, printStack := OtelcGetStackImpl, OtelcPrintStackImpl
 			if fetchStack != nil && printStack != nil {
 				printStack(fetchStack())
 			}

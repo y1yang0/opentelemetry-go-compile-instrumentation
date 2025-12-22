@@ -196,38 +196,38 @@ func TestDiscoverParentModules(t *testing.T) {
 	}{
 		{
 			name:          "single level - no parents",
-			modulePath:    util.OtelRoot + "/pkg",
+			modulePath:    util.OtelcRoot + "/pkg",
 			setupDirs:     []string{},
 			expectedCount: 0,
 			expectedPaths: []string{},
 		},
 		{
 			name:       "nested path with one parent",
-			modulePath: util.OtelRoot + "/pkg/instrumentation/nethttp",
+			modulePath: util.OtelcRoot + "/pkg/instrumentation/nethttp",
 			setupDirs: []string{
 				"pkg/instrumentation",
 			},
 			expectedCount: 1,
 			expectedPaths: []string{
-				util.OtelRoot + "/pkg/instrumentation",
+				util.OtelcRoot + "/pkg/instrumentation",
 			},
 		},
 		{
 			name:       "nested path with multiple parents",
-			modulePath: util.OtelRoot + "/pkg/instrumentation/nethttp/client",
+			modulePath: util.OtelcRoot + "/pkg/instrumentation/nethttp/client",
 			setupDirs: []string{
 				"pkg/instrumentation",
 				"pkg/instrumentation/nethttp",
 			},
 			expectedCount: 2,
 			expectedPaths: []string{
-				util.OtelRoot + "/pkg/instrumentation",
-				util.OtelRoot + "/pkg/instrumentation/nethttp",
+				util.OtelcRoot + "/pkg/instrumentation",
+				util.OtelcRoot + "/pkg/instrumentation/nethttp",
 			},
 		},
 		{
 			name:          "nested path but no parent go.mod files",
-			modulePath:    util.OtelRoot + "/pkg/instrumentation/nethttp/client",
+			modulePath:    util.OtelcRoot + "/pkg/instrumentation/nethttp/client",
 			setupDirs:     []string{},
 			expectedCount: 0,
 			expectedPaths: []string{},
@@ -239,9 +239,9 @@ func TestDiscoverParentModules(t *testing.T) {
 			tempDir := t.TempDir()
 
 			// Set environment variable to override build temp dir
-			t.Setenv(util.EnvOtelWorkDir, tempDir)
+			t.Setenv(util.EnvOtelcWorkDir, tempDir)
 
-			// GetBuildTempDir() returns tempDir + "/.otel-build"
+			// GetBuildTempDir() returns tempDir + "/.otelc-build"
 			buildTempDir := filepath.Join(tempDir, util.BuildTempDir)
 
 			// Create parent directories with go.mod files in the build temp dir
@@ -387,14 +387,14 @@ go 1.21
 	t.Chdir(tempDir)
 
 	// Set environment variable to override build temp dir
-	t.Setenv(util.EnvOtelWorkDir, tempDir)
+	t.Setenv(util.EnvOtelcWorkDir, tempDir)
 
 	// Create the pkg directory structure
 	pkgDir := filepath.Join(tempDir, "pkg")
 	err = os.MkdirAll(pkgDir, 0o755)
 	require.NoError(t, err)
 	pkgGoMod := filepath.Join(pkgDir, "go.mod")
-	err = os.WriteFile(pkgGoMod, []byte("module "+util.OtelRoot+"/pkg\ngo 1.21\n"), 0o644)
+	err = os.WriteFile(pkgGoMod, []byte("module "+util.OtelcRoot+"/pkg\ngo 1.21\n"), 0o644)
 	require.NoError(t, err)
 
 	sp := &SetupPhase{
@@ -406,7 +406,7 @@ go 1.21
 		InstBaseRule: rule.InstBaseRule{
 			Name: "test-rule",
 		},
-		Path: util.OtelRoot + "/pkg/instrumentation/nethttp",
+		Path: util.OtelcRoot + "/pkg/instrumentation/nethttp",
 	}
 
 	ruleSet := &rule.InstRuleSet{

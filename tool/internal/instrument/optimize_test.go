@@ -112,11 +112,11 @@ func TestRemoveAfterTrampolineCall(t *testing.T) {
 	}{
 		{
 			name: "removes defer statement successfully",
-			source: `if ctx, skip := otel_trampoline_before(&arg); skip {
-				otel_trampoline_after(ctx, &retval)
+			source: `if ctx, skip := otelc_trampoline_before(&arg); skip {
+				otelc_trampoline_after(ctx, &retval)
 				return
 			} else {
-				defer otel_trampoline_after(ctx, &retval)
+				defer otelc_trampoline_after(ctx, &retval)
 				if nested {
 					// nested logic
 				}
@@ -125,11 +125,11 @@ func TestRemoveAfterTrampolineCall(t *testing.T) {
 		},
 		{
 			name: "handles multiple defer statements",
-			source: `if ctx, skip := otel_trampoline_before(&arg); skip {
-				otel_trampoline_after(ctx, &retval)
+			source: `if ctx, skip := otelc_trampoline_before(&arg); skip {
+				otelc_trampoline_after(ctx, &retval)
 				return
 			} else {
-				defer otel_trampoline_after(ctx, &retval)
+				defer otelc_trampoline_after(ctx, &retval)
 				defer cleanup()
 				if nested {
 					// nested logic
@@ -310,11 +310,11 @@ func TestStripTJumpLabel(t *testing.T) {
 
 func TestOptimizeTJumps_NoAfterHook(t *testing.T) {
 	// Test case based on comment: "No After hook present? Simply remove defer call to After trampoline"
-	source := `if ctx, skip := otel_trampoline_before(&arg); skip {
-		otel_trampoline_after(ctx, &retval)
+	source := `if ctx, skip := otelc_trampoline_before(&arg); skip {
+		otelc_trampoline_after(ctx, &retval)
 		return
 	} else {
-		defer otel_trampoline_after(ctx, &retval)
+		defer otelc_trampoline_after(ctx, &retval)
 	}`
 
 	ifStmt := parseIfStmt(t, source)
@@ -341,11 +341,11 @@ func TestRemoveBeforeTrampolineCall(t *testing.T) {
 	funcSrc := `package main
 	func testFunc(param1 string) {}`
 
-	ifSrc := `if ctx, skip := otel_trampoline_before(&arg); skip {
-		otel_trampoline_after(ctx, &retval)
+	ifSrc := `if ctx, skip := otelc_trampoline_before(&arg); skip {
+		otelc_trampoline_after(ctx, &retval)
 		return
 	} else {
-		defer otel_trampoline_after(ctx, &retval)
+		defer otelc_trampoline_after(ctx, &retval)
 	}`
 
 	targetFunc := parseFunc(t, funcSrc)
@@ -478,11 +478,11 @@ func TestFlattenTJump(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ifSrc := `if ctx, skip := otel_trampoline_before(&arg); skip {
-				otel_trampoline_after(ctx, &retval)
+			ifSrc := `if ctx, skip := otelc_trampoline_before(&arg); skip {
+				otelc_trampoline_after(ctx, &retval)
 				return
 			} else {
-				defer otel_trampoline_after(ctx, &retval)
+				defer otelc_trampoline_after(ctx, &retval)
 			}`
 
 			hookFunc := parseFunc(t, tt.hookSrc)

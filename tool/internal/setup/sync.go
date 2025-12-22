@@ -66,14 +66,14 @@ func addReplace(modfile *modfile.File, path, rpath string) (bool, error) {
 // discoverParentModules finds parent modules that need replace directives
 func discoverParentModules(modulePath string) map[string]string {
 	parentModules := make(map[string]string)
-	pathParts := strings.Split(strings.TrimPrefix(modulePath, util.OtelRoot+"/"), "/")
+	pathParts := strings.Split(strings.TrimPrefix(modulePath, util.OtelcRoot+"/"), "/")
 	if len(pathParts) <= 1 {
 		return parentModules
 	}
 
 	// Check for parent instrumentation modules
 	for i := len(pathParts) - 1; i > 0; i-- {
-		parentPath := util.OtelRoot + "/" + path.Join(pathParts[:i]...)
+		parentPath := util.OtelcRoot + "/" + path.Join(pathParts[:i]...)
 		parentLocalPath := filepath.Join(util.GetBuildTempDir(), filepath.Join(pathParts[:i]...))
 		// Check if parent directory has a go.mod file
 		parentGoMod := filepath.Join(parentLocalPath, "go.mod")
@@ -83,7 +83,7 @@ func discoverParentModules(modulePath string) map[string]string {
 	}
 
 	// Also check for shared module (common dependency for instrumentation)
-	sharedPath := util.OtelRoot + "/pkg/instrumentation/shared"
+	sharedPath := util.OtelcRoot + "/pkg/instrumentation/shared"
 	sharedLocalPath := filepath.Join(util.GetBuildTempDir(), "pkg/instrumentation/shared")
 	sharedGoMod := filepath.Join(sharedLocalPath, "go.mod")
 	if _, statErr := os.Stat(sharedGoMod); statErr == nil {
@@ -133,12 +133,12 @@ func (sp *SetupPhase) syncDeps(ctx context.Context, matched []*rule.InstRuleSet,
 
 	// Add matched dependencies to go.mod
 	for _, m := range rules {
-		util.Assert(strings.HasPrefix(m.Path, util.OtelRoot), "sanity check")
+		util.Assert(strings.HasPrefix(m.Path, util.OtelcRoot), "sanity check")
 		// TODO: Since we haven't published the instrumentation packages yet,
 		// we need to add the replace directive to the local path.
 		// Once the instrumentation packages are published, we can remove this.
 		oldPath := m.Path
-		newPath := strings.TrimPrefix(oldPath, util.OtelRoot)
+		newPath := strings.TrimPrefix(oldPath, util.OtelcRoot)
 		newPath = filepath.Join(util.GetBuildTempDir(), newPath)
 		added, addErr := addReplace(modfile, oldPath, newPath)
 		if addErr != nil {
@@ -167,7 +167,7 @@ func (sp *SetupPhase) syncDeps(ctx context.Context, matched []*rule.InstRuleSet,
 	// replace directive to the local path. Once the pkg packages are published,
 	// we can remove this.
 	// Add special pkg module to go.mod
-	oldPath := util.OtelRoot + "/pkg"
+	oldPath := util.OtelcRoot + "/pkg"
 	newPath := filepath.Join(util.GetBuildTempDir(), unzippedPkgDir)
 	added, addErr := addReplace(modfile, oldPath, newPath)
 	if addErr != nil {

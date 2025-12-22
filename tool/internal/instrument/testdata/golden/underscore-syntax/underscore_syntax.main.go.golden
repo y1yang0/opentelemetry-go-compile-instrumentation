@@ -38,7 +38,7 @@ func EllipsisFunc(p1 ...string) {}
 
 func UnderscoreFunc(_ignoredParam0 int, _ignoredParam1 float32) {
 	//line <generated>:1
-	if OtelBeforeTrampoline_UnderscoreFunc2694310588(&_ignoredParam0, &_ignoredParam1); false {
+	if OtelcBeforeTrampoline_UnderscoreFunc2694310588(&_ignoredParam0, &_ignoredParam1); false {
 	} else {
 	}
 	//line main.go:37:39
@@ -125,14 +125,14 @@ func (c *HookContextImpl2694310588) GetFuncName() string    { return c.funcName 
 func (c *HookContextImpl2694310588) GetPackageName() string { return c.packageName }
 
 // Trampoline Template
-func OtelBeforeTrampoline_UnderscoreFunc2694310588(param0 *int, param1 *float32) (hookContext *HookContextImpl2694310588, skipCall bool) {
+func OtelcBeforeTrampoline_UnderscoreFunc2694310588(param0 *int, param1 *float32) (hookContext *HookContextImpl2694310588, skipCall bool) {
 	defer func() {
 		if err := recover(); err != nil {
 			println("failed to exec Before hook", "H10Before")
 			if e, ok := err.(error); ok {
 				println(e.Error())
 			}
-			fetchStack, printStack := OtelGetStackImpl, OtelPrintStackImpl
+			fetchStack, printStack := OtelcGetStackImpl, OtelcPrintStackImpl
 			if fetchStack != nil && printStack != nil {
 				printStack(fetchStack())
 			}
@@ -148,14 +148,14 @@ func OtelBeforeTrampoline_UnderscoreFunc2694310588(param0 *int, param1 *float32)
 	return hookContext, hookContext.skipCall
 }
 
-func OtelAfterTrampoline_UnderscoreFunc2694310588(hookContext HookContext) {
+func OtelcAfterTrampoline_UnderscoreFunc2694310588(hookContext HookContext) {
 	defer func() {
 		if err := recover(); err != nil {
 			println("failed to exec After hook", "")
 			if e, ok := err.(error); ok {
 				println(e.Error())
 			}
-			fetchStack, printStack := OtelGetStackImpl, OtelPrintStackImpl
+			fetchStack, printStack := OtelcGetStackImpl, OtelcPrintStackImpl
 			if fetchStack != nil && printStack != nil {
 				printStack(fetchStack())
 			}
