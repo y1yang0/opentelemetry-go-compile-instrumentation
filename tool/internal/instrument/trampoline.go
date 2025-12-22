@@ -234,10 +234,10 @@ func countParameters(fields *dst.FieldList) int {
 // checkHookDecl checks if the hook function declaration is correct, i.e. if they
 // have correct signature
 func (ip *InstrumentPhase) checkHookDecl(hookFunc *dst.FuncDecl, before bool) error {
+	// TargetFunc:  func A(a int, b string) (ret string)
+	// BeforeTramp: func B(a *int, b *string) (ctx *HookContext, skip bool)
+	// BeforeHook:  func C(ctx *HookContext, a int, b string)
 	if before {
-		// TargetFunc:  func A(a int, b string) (ret string)
-		// BeforeTramp: func B(a *int, b *string) (ctx *HookContext, skip bool)
-		// BeforeHook:  func C(ctx *HookContext, a int, b string)
 		beforeTramp := ip.beforeTrampFunc
 		beforeHook := hookFunc
 		beforeTrampParams := ast.SplitMultiNameFields(beforeTramp.Type.Params)
@@ -248,20 +248,21 @@ func (ip *InstrumentPhase) checkHookDecl(hookFunc *dst.FuncDecl, before bool) er
 			return ex.Newf("hook func signature mismatch, expected %d, got %d",
 				beforeTrampParamsCount+1, beforeHookParamsCount)
 		}
-	} else {
-		// TargetFunc:  func A(a int, b string) (ret string)
-		// AfterTramp:  func B(ctx *HookContext, ret *string)
-		// AfterHook:   func C(ctx *HookContext, ret string)
-		afterTramp := ip.afterTrampFunc
-		afterHook := hookFunc
-		afterTrampParams := ast.SplitMultiNameFields(afterTramp.Type.Params)
-		afterHookParams := ast.SplitMultiNameFields(afterHook.Type.Params)
-		afterTrampParamsCount := countParameters(afterTrampParams)
-		afterHookParamsCount := countParameters(afterHookParams)
-		if afterTrampParamsCount != afterHookParamsCount {
-			return ex.Newf("hook func signature mismatch, expected %d, got %d",
-				afterTrampParamsCount, afterHookParamsCount)
-		}
+		return nil
+	}
+
+	// TargetFunc:  func A(a int, b string) (ret string)
+	// AfterTramp:  func B(ctx *HookContext, ret *string)
+	// AfterHook:   func C(ctx *HookContext, ret string)
+	afterTramp := ip.afterTrampFunc
+	afterHook := hookFunc
+	afterTrampParams := ast.SplitMultiNameFields(afterTramp.Type.Params)
+	afterHookParams := ast.SplitMultiNameFields(afterHook.Type.Params)
+	afterTrampParamsCount := countParameters(afterTrampParams)
+	afterHookParamsCount := countParameters(afterHookParams)
+	if afterTrampParamsCount != afterHookParamsCount {
+		return ex.Newf("hook func signature mismatch, expected %d, got %d",
+			afterTrampParamsCount, afterHookParamsCount)
 	}
 	return nil
 }
@@ -891,7 +892,9 @@ func replaceTypeParamsWithAny(t dst.Expr, typeParams *dst.FieldList) dst.Expr {
 		// GenStruct[T, U] -> interface{} (for generic receiver methods with multiple type params)
 		return ast.InterfaceType()
 	case *dst.Ellipsis:
-		// ...T -> ...interface{} with type parameter replacement
+		// ...T -> []T
+		// Preserve variadic syntax. This maintains variadic semantics in the
+		// generated hook signatures
 		return ast.Ellipsis(replaceTypeParamsWithAny(tType.Elt, typeParams))
 	case *dst.Ident, *dst.SelectorExpr, *dst.InterfaceType:
 		// Base types without type parameters, return as-is
