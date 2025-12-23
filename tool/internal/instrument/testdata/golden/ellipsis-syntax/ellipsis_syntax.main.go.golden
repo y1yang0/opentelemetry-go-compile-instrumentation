@@ -139,7 +139,7 @@ func OtelBeforeTrampoline_EllipsisFunc2350319093(param0 *[]string) (hookContext 
 	hookContext.funcName = "EllipsisFunc"
 	hookContext.packageName = "main"
 	if H9Before != nil {
-		H9Before(hookContext, *param0)
+		H9Before(hookContext, *param0...)
 	}
 	return hookContext, hookContext.skipCall
 }
@@ -161,4 +161,4 @@ func OtelAfterTrampoline_EllipsisFunc2350319093(hookContext HookContext) {
 }
 
 //go:linkname H9Before testdata.H9Before
-func H9Before(hookContext HookContext, param0 []string)
+func H9Before(hookContext HookContext, param0 ...string)
