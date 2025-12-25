@@ -178,6 +178,11 @@ func IsEllipsis(t dst.Expr) bool {
 	return ok
 }
 
+func IsIdent(t dst.Expr, name string) bool {
+	ident, ok := t.(*dst.Ident)
+	return ok && ident.Name == name
+}
+
 func AddStructField(decl dst.Decl, name, t string) {
 	gen := util.AssertType[*dst.GenDecl](decl)
 	fd := Field(name, Ident(t))

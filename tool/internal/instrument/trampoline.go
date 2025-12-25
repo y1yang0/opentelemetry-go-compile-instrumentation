@@ -233,10 +233,16 @@ func countParameters(fields *dst.FieldList) int {
 
 // checkHookDecl checks if the hook function declaration is correct, i.e. if they
 // have correct signature
+//
+// TargetFunc:  func A(a int, b string) (ret string)
+// BeforeTramp: func B(a *int, b *string) (ctx *HookContextImpl, skip bool)
+// BeforeHook:  func C(ctx HookContext, a int, b string)
+//
+// TargetFunc:  func A(a int, b string) (ret string)
+// AfterTramp:  func B(ctx HookContext, ret *string)
+// AfterHook:   func C(ctx HookContext, ret string)
 func (ip *InstrumentPhase) checkHookDecl(hookFunc *dst.FuncDecl, before bool) error {
-	// TargetFunc:  func A(a int, b string) (ret string)
-	// BeforeTramp: func B(a *int, b *string) (ctx *HookContext, skip bool)
-	// BeforeHook:  func C(ctx *HookContext, a int, b string)
+	// Check if the count of parameters is correct (tramp vs hook)
 	if before {
 		beforeTramp := ip.beforeTrampFunc
 		beforeHook := hookFunc
@@ -250,10 +256,6 @@ func (ip *InstrumentPhase) checkHookDecl(hookFunc *dst.FuncDecl, before bool) er
 		}
 		return nil
 	}
-
-	// TargetFunc:  func A(a int, b string) (ret string)
-	// AfterTramp:  func B(ctx *HookContext, ret *string)
-	// AfterHook:   func C(ctx *HookContext, ret string)
 	afterTramp := ip.afterTrampFunc
 	afterHook := hookFunc
 	afterTrampParams := ast.SplitMultiNameFields(afterTramp.Type.Params)
@@ -263,6 +265,20 @@ func (ip *InstrumentPhase) checkHookDecl(hookFunc *dst.FuncDecl, before bool) er
 	if afterTrampParamsCount != afterHookParamsCount {
 		return ex.Newf("hook func signature mismatch, expected %d, got %d",
 			afterTrampParamsCount, afterHookParamsCount)
+	}
+	// Check if the type of first parameter is inst.HookContext
+	if sel, ok := hookFunc.Type.Params.List[0].Type.(*dst.SelectorExpr); ok {
+		if !ast.IsIdent(sel.Sel, trampolineHookContextType) {
+			return ex.Newf("the type of first parameter must be HookContext, got %s",
+				hookFunc.Type.Params.List[0].Type)
+		}
+	} else {
+		return ex.Newf("the type of first parameter must be HookContext, got %s",
+			hookFunc.Type.Params.List[0].Type)
+	}
+	if before {
+		targetParams := findTargetParamType(ip.targetFunc)
+		hookParams := ast.SplitMultiNameFields(hookFunc.Type.Params)
 	}
 	return nil
 }
