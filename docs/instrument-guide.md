@@ -27,7 +27,7 @@ inject_to_grpc_newserver:
 ```
 
 * `target`: Import path of the package to instrument.
-* `version`: Version range to match.
+* `version`: Version range to match. The left bound is inclusive, the right bound is exclusive. If version is not specified, the rule is applicable to all versions.
 * `func`: Name of the function to hook.
 * `before` / `after`: Names of the hook functions.
 * `path`: Import path where the hook functions are defined.
@@ -79,7 +79,7 @@ If we cannot import a specific type (e.g., it is unexported), we can use `interf
 
 When implementing hooks, we must adhere to certain limitations:
 
-1. **Restricted Imports**: If we are instrumenting a library (e.g., `github.com/foo/bar`), our hook code can only import {}
+1. **Restricted Imports**: If we are instrumenting a library (e.g., `github.com/foo/bar`), our hook code can only import from:
     * The Target Library (`github.com/foo/bar`)
     * OpenTelemetry packages
     * Standard Library packages
