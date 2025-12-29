@@ -10,21 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-
-    strategy:
-      matrix:
-        include:
-          - goos: linux
-            goarch: amd64
-          - goos: linux
-            goarch: arm64
-          - goos: darwin # macOS
-            goarch: amd64
-          - goos: darwin
-            goarch: arm64
-          - goos: windows
-            goarch: amd64
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -46,6 +31,6 @@ jobs:
       - name: Create Release and Upload Assets
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "otel-*"
+          artifacts: "dist/otel-*"
           generateReleaseNotes: true
           token: ${{ secrets.GITHUB_TOKEN }}
