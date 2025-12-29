@@ -1,5 +1,4 @@
 name: Release
-
 on:
   push:
     tags:
@@ -24,7 +23,8 @@ jobs:
       - name: Create Release and Upload Assets
         uses: ncipollo/release-action@b7eabc95ff50cbeeedec83973935c8f306dfcd0b  # v1.20.0
         with:
-          draft: true # Draft the release so it can be edited before publishing
+          # Draft the release so it can be edited before publishing
+          draft: true
           artifacts: "dist/otel-*"
           generateReleaseNotes: true
           token: ${{ secrets.GITHUB_TOKEN }}
