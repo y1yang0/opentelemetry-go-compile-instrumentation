@@ -13,6 +13,7 @@ import (
 
 	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/ex"
 	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/util"
+	"github.com/urfave/cli/v3"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -236,7 +237,8 @@ func BuildWithToolexec(ctx context.Context, args []string) error {
 	return util.RunCmdWithEnv(ctx, env, newArgs...)
 }
 
-func GoBuild(ctx context.Context, args []string) error {
+func GoBuild(ctx context.Context, cmd *cli.Command) error {
+	args := cmd.Args().Slice()
 	logger := util.LoggerFromContext(ctx)
 	backupFiles := []string{"go.mod", "go.sum", "go.work", "go.work.sum"}
 	err := util.BackupFile(backupFiles)
@@ -263,7 +265,7 @@ func GoBuild(ctx context.Context, args []string) error {
 		}
 	}()
 
-	err = Setup(ctx, os.Args[1:])
+	err = Setup(ctx, append([]string{"go"}, args...))
 	if err != nil {
 		return err
 	}

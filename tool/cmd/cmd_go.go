@@ -18,6 +18,6 @@ var commandGo = cli.Command{
 	SkipFlagParsing: true,
 	Before:          addLoggerPhaseAttribute,
 	Action: func(ctx context.Context, cmd *cli.Command) error {
-		return setup.GoBuild(ctx, cmd.Args().Slice())
+		return setup.GoBuild(ctx, cmd)
 	},
 }
