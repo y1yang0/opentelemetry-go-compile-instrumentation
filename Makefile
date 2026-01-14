@@ -247,11 +247,13 @@ test-unit/update-golden: package
 	set -euo pipefail
 	cd tool/internal/instrument && go test -v -timeout=5m -count=1 -update
 
+# - Does NOT use gotestfmt because v2.5.0 has a bug that causes panics when go test
+#   outputs build errors (JSON lines with ImportPath but no Package field).
 .ONESHELL:
 test-unit/tool: build package gotestfmt ## Run unit tests for tool modules only
 	@echo "Running tool unit tests..."
 	set -euo pipefail
-	go test -json -v -shuffle=on -timeout=5m -count=1 ./tool/... 2>&1 | tee ./gotest-unit-tool.log | gotestfmt
+	go test -json -v -shuffle=on -timeout=5m -count=1 ./tool/... 2>&1 | tee ./gotest-unit-tool.log
 
 # Notes on test-unit/pkg implementation:
 # - Uses find -maxdepth 3 to discover modules at pkg/instrumentation/{name}/ level only.
