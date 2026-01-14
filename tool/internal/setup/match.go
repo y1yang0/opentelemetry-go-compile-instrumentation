@@ -78,9 +78,9 @@ func loadDefaultRules() ([]rule.InstRule, error) {
 
 	parsedRules := []rule.InstRule{}
 	for _, available := range availables {
-		content, err := data.ReadEmbedFile(available)
-		if err != nil {
-			return nil, err
+		content, rerr := data.ReadEmbedFile(available)
+		if rerr != nil {
+			return nil, rerr
 		}
 		rs, perr := parseRuleFromYaml(content)
 		if perr != nil {
