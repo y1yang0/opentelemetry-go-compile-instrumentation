@@ -299,9 +299,10 @@ func validateCreatedRule(t *testing.T, createdRule rule.InstRule, ruleName strin
 }
 
 func TestMaterializeRules(t *testing.T) {
-	rules, err := loadDefaultRules()
-	if err != nil {
-		t.Fatalf("failed to materialize rules: %v", err)
-	}
+	sp := newTestSetupPhase()
+	err := sp.extract()
+	require.NoError(t, err)
+	rules, err := sp.loadDefaultRules()
+	require.NoError(t, err)
 	require.NotEmpty(t, rules)
 }
