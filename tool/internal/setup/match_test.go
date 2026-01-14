@@ -299,7 +299,7 @@ func validateCreatedRule(t *testing.T, createdRule rule.InstRule, ruleName strin
 }
 
 func TestMaterializeRules(t *testing.T) {
-	rules, err := materializeRules()
+	rules, err := loadDefaultRules()
 	if err != nil {
 		t.Fatalf("failed to materialize rules: %v", err)
 	}

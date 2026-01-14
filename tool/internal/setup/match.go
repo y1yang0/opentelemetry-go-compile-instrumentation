@@ -5,6 +5,7 @@ package setup
 
 import (
 	"context"
+	"os"
 	"runtime"
 	"strings"
 	"sync"
@@ -46,14 +47,9 @@ func createRuleFromFields(raw []byte, name string, fields map[string]any) (rule.
 	}
 }
 
-// parseEmbeddedRule parses the embedded yaml rule file to concrete rule instances
-func parseEmbeddedRule(path string) ([]rule.InstRule, error) {
-	yamlFile, err := data.ReadEmbedFile(path)
-	if err != nil {
-		return nil, err
-	}
+func parseRuleFromYaml(content []byte) ([]rule.InstRule, error) {
 	var h map[string]map[string]any
-	err = yaml.Unmarshal(yamlFile, &h)
+	err := yaml.Unmarshal(content, &h)
 	if err != nil {
 		return nil, ex.Wrap(err)
 	}
@@ -73,8 +69,8 @@ func parseEmbeddedRule(path string) ([]rule.InstRule, error) {
 	return rules, nil
 }
 
-// materializeRules materializes all available rules from the embedded data
-func materializeRules() ([]rule.InstRule, error) {
+// loadDefaultRules materializes all available rules from the embedded data
+func loadDefaultRules() ([]rule.InstRule, error) {
 	availables, err := data.ListEmbedFiles()
 	if err != nil {
 		return nil, err
@@ -82,7 +78,11 @@ func materializeRules() ([]rule.InstRule, error) {
 
 	parsedRules := []rule.InstRule{}
 	for _, available := range availables {
-		rs, perr := parseEmbeddedRule(available)
+		content, err := data.ReadEmbedFile(available)
+		if err != nil {
+			return nil, err
+		}
+		rs, perr := parseRuleFromYaml(content)
 		if perr != nil {
 			return nil, perr
 		}
@@ -212,9 +212,24 @@ func (sp *SetupPhase) preciseMatching(
 	return set, nil
 }
 
+func (sp *SetupPhase) loadRules() ([]rule.InstRule, error) {
+	// Load custom rules from config file if specified
+	if sp.ruleConfig != "" {
+		content, err := os.ReadFile(sp.ruleConfig)
+		if err != nil {
+			return nil, ex.Wrap(err)
+		}
+		return parseRuleFromYaml(content)
+	}
+	// TODO: Load rules from environment variable if specified, e.g. OTEL_RULES
+
+	// Load default rules from embedded data
+	return loadDefaultRules()
+}
+
 func (sp *SetupPhase) matchDeps(ctx context.Context, deps []*Dependency) ([]*rule.InstRuleSet, error) {
 	// Construct the set of default allRules by parsing embedded data
-	allRules, err := materializeRules()
+	allRules, err := sp.loadRules()
 	if err != nil {
 		return nil, err
 	}
