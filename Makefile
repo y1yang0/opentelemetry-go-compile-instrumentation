@@ -249,6 +249,7 @@ test-unit/update-golden: package
 
 # - Does NOT use gotestfmt because v2.5.0 has a bug that causes panics when go test
 #   outputs build errors (JSON lines with ImportPath but no Package field).
+
 .ONESHELL:
 test-unit/tool: build package gotestfmt ## Run unit tests for tool modules only
 	@echo "Running tool unit tests..."
@@ -410,7 +411,7 @@ embedmd: ## Install embedmd if not present
 checkmake: ## Install checkmake if not present
 	@if ! command -v checkmake >/dev/null 2>&1; then \
 		echo "Installing checkmake..."; \
-		go install github.com/mrtazz/checkmake/cmd/checkmake@latest; \
+		go install github.com/checkmake/checkmake/cmd/checkmake@latest; \
 	fi
 
 go-protobuf-plugins: ## Install Go protobuf plugins if not present
