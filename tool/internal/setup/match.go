@@ -81,13 +81,13 @@ func (sp *SetupPhase) loadDefaultRules() ([]rule.InstRule, error) {
 			continue
 		}
 		sp.Info("Parse YAML rule file", "file", file)
-		content, err := os.ReadFile(file)
-		if err != nil {
-			return nil, err
+		content, err1 := os.ReadFile(file)
+		if err1 != nil {
+			return nil, ex.Wrapf(err1, "failed to read YAML file %s", file)
 		}
-		rs, err := parseRuleFromYaml(content)
-		if err != nil {
-			return nil, err
+		rs, err2 := parseRuleFromYaml(content)
+		if err2 != nil {
+			return nil, err2
 		}
 		parsedRules = append(parsedRules, rs...)
 	}
