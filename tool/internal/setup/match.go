@@ -14,7 +14,6 @@ import (
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v3"
 
-	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/data"
 	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/ex"
 	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/internal/ast"
 	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/internal/rule"
@@ -69,22 +68,26 @@ func parseRuleFromYaml(content []byte) ([]rule.InstRule, error) {
 	return rules, nil
 }
 
-// loadDefaultRules materializes all available rules from the embedded data
-func loadDefaultRules() ([]rule.InstRule, error) {
-	availables, err := data.ListEmbedFiles()
+func (sp *SetupPhase) loadDefaultRules() ([]rule.InstRule, error) {
+	// List all YAML files in the unzipped pkg directory, i.e. $BUILD_TEMP/pkg
+	files, err := util.ListFiles(util.GetBuildTemp(unzippedPkgDir))
 	if err != nil {
 		return nil, err
 	}
-
-	parsedRules := []rule.InstRule{}
-	for _, available := range availables {
-		content, rerr := data.ReadEmbedFile(available)
-		if rerr != nil {
-			return nil, rerr
+	// Parse all YAML contents into rule instances
+	parsedRules := make([]rule.InstRule, 0)
+	for _, file := range files {
+		if !util.IsYamlFile(file) {
+			continue
 		}
-		rs, perr := parseRuleFromYaml(content)
-		if perr != nil {
-			return nil, perr
+		sp.Info("Parse YAML rule file", "file", file)
+		content, err := os.ReadFile(file)
+		if err != nil {
+			return nil, err
+		}
+		rs, err := parseRuleFromYaml(content)
+		if err != nil {
+			return nil, err
 		}
 		parsedRules = append(parsedRules, rs...)
 	}
@@ -122,7 +125,7 @@ func (sp *SetupPhase) runMatch(dep *Dependency, rulesByTarget map[string][]rule.
 
 	if len(dep.CgoFiles) > 0 {
 		set.SetCgoFileMap(dep.CgoFiles)
-		sp.Info("Set CGO file map", "dep", dep.ImportPath, "cgoFiles", dep.CgoFiles)
+		sp.Debug("Set CGO file map", "dep", dep.ImportPath, "cgoFiles", dep.CgoFiles)
 	}
 
 	// Filter rules by target
@@ -223,8 +226,8 @@ func (sp *SetupPhase) loadRules() ([]rule.InstRule, error) {
 	}
 	// TODO: Load rules from environment variable if specified, e.g. OTEL_RULES
 
-	// Load default rules from embedded data
-	return loadDefaultRules()
+	// Load default rules from the unzipped pkg directory
+	return sp.loadDefaultRules()
 }
 
 func (sp *SetupPhase) matchDeps(ctx context.Context, deps []*Dependency) ([]*rule.InstRuleSet, error) {

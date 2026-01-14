@@ -165,14 +165,15 @@ func Setup(ctx context.Context, cmd *cli.Command) error {
 	if err != nil {
 		return err
 	}
-	// Match the hook code with these dependencies
-	matched, err := sp.matchDeps(ctx, deps)
+
+	// Extract the embedded pkg module into local directory
+	err = sp.extract()
 	if err != nil {
 		return err
 	}
 
-	// Extract the embedded instrumentation modules into local directory
-	err = sp.extract()
+	// Match the hook code with these dependencies
+	matched, err := sp.matchDeps(ctx, deps)
 	if err != nil {
 		return err
 	}
