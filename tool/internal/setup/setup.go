@@ -18,7 +18,8 @@ import (
 )
 
 type SetupPhase struct {
-	logger *slog.Logger
+	logger     *slog.Logger
+	ruleConfig string
 }
 
 func (sp *SetupPhase) Info(msg string, args ...any)  { sp.logger.Info(msg, args...) }
@@ -135,7 +136,11 @@ func getPackageDir(pkg *packages.Package) string {
 }
 
 // Setup prepares the environment for further instrumentation.
-func Setup(ctx context.Context, args []string) error {
+func Setup(ctx context.Context, cmd *cli.Command) error {
+	// The args are "go build ..."
+	args := cmd.Args().Slice()
+	args = append([]string{"go"}, args...)
+
 	logger := util.LoggerFromContext(ctx)
 
 	if isSetup() {
@@ -144,7 +149,8 @@ func Setup(ctx context.Context, args []string) error {
 	}
 
 	sp := &SetupPhase{
-		logger: logger,
+		logger:     logger,
+		ruleConfig: cmd.String("rules"),
 	}
 
 	// Introduce additional hook code by generating otel.runtime.go
@@ -202,7 +208,8 @@ func Setup(ctx context.Context, args []string) error {
 }
 
 // BuildWithToolexec builds the project with the toolexec mode
-func BuildWithToolexec(ctx context.Context, args []string) error {
+func BuildWithToolexec(ctx context.Context, cmd *cli.Command) error {
+	args := cmd.Args().Slice()
 	logger := util.LoggerFromContext(ctx)
 
 	// Add -toolexec=otel to the original build command and run it
@@ -238,7 +245,6 @@ func BuildWithToolexec(ctx context.Context, args []string) error {
 }
 
 func GoBuild(ctx context.Context, cmd *cli.Command) error {
-	args := cmd.Args().Slice()
 	logger := util.LoggerFromContext(ctx)
 	backupFiles := []string{"go.mod", "go.sum", "go.work", "go.work.sum"}
 	err := util.BackupFile(backupFiles)
@@ -247,7 +253,7 @@ func GoBuild(ctx context.Context, cmd *cli.Command) error {
 	}
 	defer func() {
 		var pkgs []*packages.Package
-		pkgs, err = getBuildPackages(ctx, args)
+		pkgs, err = getBuildPackages(ctx, cmd.Args().Slice())
 		if err != nil {
 			logger.DebugContext(ctx, "failed to get build packages", "error", err)
 		}
@@ -265,13 +271,13 @@ func GoBuild(ctx context.Context, cmd *cli.Command) error {
 		}
 	}()
 
-	err = Setup(ctx, append([]string{"go"}, args...))
+	err = Setup(ctx, cmd)
 	if err != nil {
 		return err
 	}
 	logger.InfoContext(ctx, "Setup completed successfully")
 
-	err = BuildWithToolexec(ctx, args)
+	err = BuildWithToolexec(ctx, cmd)
 	if err != nil {
 		return err
 	}

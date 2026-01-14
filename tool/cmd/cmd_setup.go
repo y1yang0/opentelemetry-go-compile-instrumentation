@@ -17,6 +17,6 @@ var commandSetup = cli.Command{
 	Description: "Set up the environment for instrumentation",
 	Before:      addLoggerPhaseAttribute,
 	Action: func(ctx context.Context, cmd *cli.Command) error {
-		return setup.Setup(ctx, cmd.Args().Slice())
+		return setup.Setup(ctx, cmd)
 	},
 }
