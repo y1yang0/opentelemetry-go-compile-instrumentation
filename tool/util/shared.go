@@ -11,6 +11,7 @@ import (
 
 const (
 	EnvOtelWorkDir = "OTEL_WORK_DIR"
+	EnvOtelRules   = "OTEL_RULES"
 	BuildTempDir   = ".otel-build"
 	OtelRoot       = "github.com/open-telemetry/opentelemetry-go-compile-instrumentation"
 )

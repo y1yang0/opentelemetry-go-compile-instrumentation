@@ -216,15 +216,25 @@ func (sp *SetupPhase) preciseMatching(
 }
 
 func (sp *SetupPhase) loadRules() ([]rule.InstRule, error) {
+	// Load rules from environment variable OTEL_RULES if specified. It has the
+	// highest priority.
+	rulePath := os.Getenv(util.EnvOtelRules)
+	if rulePath != "" {
+		content, err := os.ReadFile(rulePath)
+		if err != nil {
+			return nil, ex.Wrapf(err, "failed to read %s from env variable", rulePath)
+		}
+		return parseRuleFromYaml(content)
+	}
+
 	// Load custom rules from config file if specified
 	if sp.ruleConfig != "" {
 		content, err := os.ReadFile(sp.ruleConfig)
 		if err != nil {
-			return nil, ex.Wrap(err)
+			return nil, ex.Wrapf(err, "failed to read %s from -rules flag", sp.ruleConfig)
 		}
 		return parseRuleFromYaml(content)
 	}
-	// TODO: Load rules from environment variable if specified, e.g. OTEL_RULES
 
 	// Load default rules from the unzipped pkg directory
 	return sp.loadDefaultRules()
