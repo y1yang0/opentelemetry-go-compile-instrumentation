@@ -303,9 +303,9 @@ func validateCreatedRule(t *testing.T, createdRule rule.InstRule, ruleName strin
 	}
 }
 
-func writeCustomRules(t *testing.T, name string, content string) string {
+func writeCustomRules(t *testing.T, name, content string) string {
 	path := filepath.Join(t.TempDir(), name)
-	err := os.WriteFile(path, []byte(content), 0644)
+	err := os.WriteFile(path, []byte(content), 0o644)
 	require.NoError(t, err)
 	return path
 }
@@ -322,7 +322,7 @@ func TestLoadDefaultRules(t *testing.T) {
   raw: "_ = 1"`
 	p1 := writeCustomRules(t, "r1.yaml", content1)
 	p2 := writeCustomRules(t, "r2.yaml", content2)
-	os.Setenv(util.EnvOtelRules, p1)
+	t.Setenv(util.EnvOtelRules, p1)
 
 	// Prepare setup phase and set custom rules via environment variable and flag
 	sp := newTestSetupPhase()
@@ -335,20 +335,20 @@ func TestLoadDefaultRules(t *testing.T) {
 	rules, err := sp.loadRules()
 	require.NoError(t, err)
 	require.NotEmpty(t, rules)
-	require.Equal(t, 1, len(rules))
+	require.Len(t, rules, 1)
 	require.Equal(t, "h1", rules[0].GetName())
 
 	// Verify that the custom rule specified by flag has higher priority than
 	// default rules
-	os.Setenv(util.EnvOtelRules, "")
+	t.Setenv(util.EnvOtelRules, "")
 	rules, err = sp.loadRules()
 	require.NoError(t, err)
 	require.NotEmpty(t, rules)
-	require.Equal(t, 1, len(rules))
+	require.Len(t, rules, 1)
 	require.Equal(t, "h2", rules[0].GetName())
 
 	// Verify that the default rules are loaded
-	os.Setenv(util.EnvOtelRules, "")
+	t.Setenv(util.EnvOtelRules, "")
 	sp.ruleConfig = ""
 
 	rules, err = sp.loadRules()
