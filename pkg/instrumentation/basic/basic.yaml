@@ -30,7 +30,7 @@ hook_no_recv:
   func: Example2
   recv: "MyStruct"
   before: MyHook2Before
-  path: "github.com/open-telemetry/opentelemetry-go-compile-instrumentation/pkg/instrumentation/helloworld"
+  path: "github.com/open-telemetry/opentelemetry-go-compile-instrumentation/pkg/instrumentation/basic"
 
 version_range:
   target: golang.org/x/time/rate
