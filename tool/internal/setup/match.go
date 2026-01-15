@@ -68,7 +68,7 @@ func parseRuleFromYaml(content []byte) ([]rule.InstRule, error) {
 	return rules, nil
 }
 
-func (sp *SetupPhase) loadDefaultRules() ([]rule.InstRule, error) {
+func loadDefaultRules() ([]rule.InstRule, error) {
 	// List all YAML files in the unzipped pkg directory, i.e. $BUILD_TEMP/pkg
 	files, err := util.ListFiles(util.GetBuildTemp(unzippedPkgDir))
 	if err != nil {
@@ -80,7 +80,6 @@ func (sp *SetupPhase) loadDefaultRules() ([]rule.InstRule, error) {
 		if !util.IsYamlFile(file) {
 			continue
 		}
-		sp.Info("Parse YAML rule file", "file", file)
 		content, err1 := os.ReadFile(file)
 		if err1 != nil {
 			return nil, ex.Wrapf(err1, "failed to read YAML file %s", file)
@@ -237,7 +236,7 @@ func (sp *SetupPhase) loadRules() ([]rule.InstRule, error) {
 	}
 
 	// Load default rules from the unzipped pkg directory
-	return sp.loadDefaultRules()
+	return loadDefaultRules()
 }
 
 func (sp *SetupPhase) matchDeps(ctx context.Context, deps []*Dependency) ([]*rule.InstRuleSet, error) {
