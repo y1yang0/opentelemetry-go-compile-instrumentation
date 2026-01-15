@@ -38,6 +38,13 @@ func main() {
 				Usage:   "Enable debug mode",
 				Value:   false,
 			},
+			&cli.StringFlag{
+				Name:      "rules",
+				Aliases:   []string{"rules"},
+				Usage:     "The path to the rules configuration file",
+				TakesFile: true,
+				Value:     "",
+			},
 		},
 		Commands: []*cli.Command{
 			&commandSetup,

@@ -2,7 +2,7 @@ hook_helloworld:
   target: main
   func: Example
   before: MyHookBefore
-  path: "github.com/open-telemetry/opentelemetry-go-compile-instrumentation/pkg/instrumentation/helloworld"
+  path: "github.com/open-telemetry/opentelemetry-go-compile-instrumentation/pkg/instrumentation/basic"
 
 add_new_field:
   target: main
@@ -23,7 +23,7 @@ hook_recv:
   recv: "*MyStruct"
   before: MyHook1Before
   after: MyHook1After
-  path: "github.com/open-telemetry/opentelemetry-go-compile-instrumentation/pkg/instrumentation/helloworld"
+  path: "github.com/open-telemetry/opentelemetry-go-compile-instrumentation/pkg/instrumentation/basic"
 
 version_range:
   target: golang.org/x/time/rate
@@ -50,20 +50,20 @@ only_after:
   target: main
   func: Example
   after: MyHookAfter
-  path: "github.com/open-telemetry/opentelemetry-go-compile-instrumentation/pkg/instrumentation/helloworld"
+  path: "github.com/open-telemetry/opentelemetry-go-compile-instrumentation/pkg/instrumentation/basic"
 
 underscore_param:
   target: main
   func: Underscore
   before: BeforeUnderscore
-  path: "github.com/open-telemetry/opentelemetry-go-compile-instrumentation/pkg/instrumentation/helloworld"
+  path: "github.com/open-telemetry/opentelemetry-go-compile-instrumentation/pkg/instrumentation/basic"
 
 hook_generic:
   target: main
   func: GenericExample
   before: MyHookGenericBefore
   after: MyHookGenericAfter
-  path: "github.com/open-telemetry/opentelemetry-go-compile-instrumentation/pkg/instrumentation/helloworld"
+  path: "github.com/open-telemetry/opentelemetry-go-compile-instrumentation/pkg/instrumentation/basic"
 
 hook_generic_recv:
   target: main
@@ -71,22 +71,22 @@ hook_generic_recv:
   recv: "*GenStruct"
   before: MyHookRecvBefore
   after: MyHookRecvAfter
-  path: "github.com/open-telemetry/opentelemetry-go-compile-instrumentation/pkg/instrumentation/helloworld"
+  path: "github.com/open-telemetry/opentelemetry-go-compile-instrumentation/pkg/instrumentation/basic"
 
 hook_ellipsis:
   target: main
   func: Ellipsis
   before: MyHookEllipsisBefore
-  path: "github.com/open-telemetry/opentelemetry-go-compile-instrumentation/pkg/instrumentation/helloworld"
+  path: "github.com/open-telemetry/opentelemetry-go-compile-instrumentation/pkg/instrumentation/basic"
 
 hook_function_a:
   target: main
   func: FunctionA
   before: FunctionABefore
-  path: "github.com/open-telemetry/opentelemetry-go-compile-instrumentation/pkg/instrumentation/helloworld"
+  path: "github.com/open-telemetry/opentelemetry-go-compile-instrumentation/pkg/instrumentation/basic"
 
 hook_function_b:
   target: main
   func: FunctionB
   before: FunctionBBefore
-  path: "github.com/open-telemetry/opentelemetry-go-compile-instrumentation/pkg/instrumentation/helloworld"
+  path: "github.com/open-telemetry/opentelemetry-go-compile-instrumentation/pkg/instrumentation/basic"

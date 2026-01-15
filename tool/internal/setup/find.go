@@ -184,7 +184,7 @@ func findGoSources(sp *SetupPhase, args []string, cgoObjDirs map[string]string) 
 			}
 			dep.CgoFiles[originalAbsFile] = filepath.Base(arg)
 			dep.Sources = append(dep.Sources, originalAbsFile)
-			sp.Info("Resolved CGO source", "cgo", arg, "original", originalAbsFile)
+			sp.Debug("Resolved CGO source", "cgo", arg, "original", originalAbsFile)
 			continue
 		}
 

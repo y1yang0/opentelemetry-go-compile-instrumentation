@@ -13,8 +13,6 @@
 package setup
 
 import (
-	"io"
-	"log/slog"
 	"os"
 	"path/filepath"
 	"testing"
@@ -107,30 +105,4 @@ func TestAddDeps_FileWriteError(t *testing.T) {
 
 	err := sp.addDeps(matched, invalidPath)
 	assert.Error(t, err)
-}
-
-// Helper functions for constructing test data
-
-func newTestSetupPhase() *SetupPhase {
-	return &SetupPhase{
-		logger: slog.New(slog.NewTextHandler(io.Discard, nil)),
-	}
-}
-
-func newTestFuncRule(path, target string) *rule.InstFuncRule {
-	return &rule.InstFuncRule{
-		InstBaseRule: rule.InstBaseRule{
-			Target: target,
-		},
-		Path: path,
-	}
-}
-
-func newTestRuleSet(modulePath string, funcRules ...*rule.InstFuncRule) *rule.InstRuleSet {
-	rs := rule.NewInstRuleSet(modulePath)
-	fakeFilePath := filepath.Join(os.TempDir(), "file.go")
-	for _, fr := range funcRules {
-		rs.AddFuncRule(fakeFilePath, fr)
-	}
-	return rs
 }

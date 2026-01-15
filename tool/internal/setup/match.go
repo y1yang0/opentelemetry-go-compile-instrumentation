@@ -5,6 +5,7 @@ package setup
 
 import (
 	"context"
+	"os"
 	"runtime"
 	"strings"
 	"sync"
@@ -13,7 +14,6 @@ import (
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v3"
 
-	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/data"
 	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/ex"
 	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/internal/ast"
 	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/internal/rule"
@@ -46,14 +46,9 @@ func createRuleFromFields(raw []byte, name string, fields map[string]any) (rule.
 	}
 }
 
-// parseEmbeddedRule parses the embedded yaml rule file to concrete rule instances
-func parseEmbeddedRule(path string) ([]rule.InstRule, error) {
-	yamlFile, err := data.ReadEmbedFile(path)
-	if err != nil {
-		return nil, err
-	}
+func parseRuleFromYaml(content []byte) ([]rule.InstRule, error) {
 	var h map[string]map[string]any
-	err = yaml.Unmarshal(yamlFile, &h)
+	err := yaml.Unmarshal(content, &h)
 	if err != nil {
 		return nil, ex.Wrap(err)
 	}
@@ -73,18 +68,25 @@ func parseEmbeddedRule(path string) ([]rule.InstRule, error) {
 	return rules, nil
 }
 
-// materializeRules materializes all available rules from the embedded data
-func materializeRules() ([]rule.InstRule, error) {
-	availables, err := data.ListEmbedFiles()
+func loadDefaultRules() ([]rule.InstRule, error) {
+	// List all YAML files in the unzipped pkg directory, i.e. $BUILD_TEMP/pkg
+	files, err := util.ListFiles(util.GetBuildTemp(unzippedPkgDir))
 	if err != nil {
 		return nil, err
 	}
-
-	parsedRules := []rule.InstRule{}
-	for _, available := range availables {
-		rs, perr := parseEmbeddedRule(available)
-		if perr != nil {
-			return nil, perr
+	// Parse all YAML contents into rule instances
+	parsedRules := make([]rule.InstRule, 0)
+	for _, file := range files {
+		if !util.IsYamlFile(file) {
+			continue
+		}
+		content, err1 := os.ReadFile(file)
+		if err1 != nil {
+			return nil, ex.Wrapf(err1, "failed to read YAML file %s", file)
+		}
+		rs, err2 := parseRuleFromYaml(content)
+		if err2 != nil {
+			return nil, err2
 		}
 		parsedRules = append(parsedRules, rs...)
 	}
@@ -122,7 +124,7 @@ func (sp *SetupPhase) runMatch(dep *Dependency, rulesByTarget map[string][]rule.
 
 	if len(dep.CgoFiles) > 0 {
 		set.SetCgoFileMap(dep.CgoFiles)
-		sp.Info("Set CGO file map", "dep", dep.ImportPath, "cgoFiles", dep.CgoFiles)
+		sp.Debug("Set CGO file map", "dep", dep.ImportPath, "cgoFiles", dep.CgoFiles)
 	}
 
 	// Filter rules by target
@@ -212,9 +214,34 @@ func (sp *SetupPhase) preciseMatching(
 	return set, nil
 }
 
+func (sp *SetupPhase) loadRules() ([]rule.InstRule, error) {
+	// Load rules from environment variable OTEL_RULES if specified. It has the
+	// highest priority.
+	rulePath := os.Getenv(util.EnvOtelRules)
+	if rulePath != "" {
+		content, err := os.ReadFile(rulePath)
+		if err != nil {
+			return nil, ex.Wrapf(err, "failed to read %s from env variable", rulePath)
+		}
+		return parseRuleFromYaml(content)
+	}
+
+	// Load custom rules from config file if specified
+	if sp.ruleConfig != "" {
+		content, err := os.ReadFile(sp.ruleConfig)
+		if err != nil {
+			return nil, ex.Wrapf(err, "failed to read %s from -rules flag", sp.ruleConfig)
+		}
+		return parseRuleFromYaml(content)
+	}
+
+	// Load default rules from the unzipped pkg directory
+	return loadDefaultRules()
+}
+
 func (sp *SetupPhase) matchDeps(ctx context.Context, deps []*Dependency) ([]*rule.InstRuleSet, error) {
 	// Construct the set of default allRules by parsing embedded data
-	allRules, err := materializeRules()
+	allRules, err := sp.loadRules()
 	if err != nil {
 		return nil, err
 	}

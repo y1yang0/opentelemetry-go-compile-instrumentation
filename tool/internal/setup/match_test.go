@@ -4,9 +4,14 @@
 package setup
 
 import (
+	"io"
+	"log/slog"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/internal/rule"
+	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/util"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 )
@@ -298,10 +303,82 @@ func validateCreatedRule(t *testing.T, createdRule rule.InstRule, ruleName strin
 	}
 }
 
-func TestMaterializeRules(t *testing.T) {
-	rules, err := materializeRules()
-	if err != nil {
-		t.Fatalf("failed to materialize rules: %v", err)
-	}
+func writeCustomRules(t *testing.T, name, content string) string {
+	path := filepath.Join(t.TempDir(), name)
+	err := os.WriteFile(path, []byte(content), 0o644)
+	require.NoError(t, err)
+	return path
+}
+
+func TestLoadDefaultRules(t *testing.T) {
+	// Write custom rules to temporary files
+	content1 := `h1:
+  target: main
+  func: Example
+  raw: "_ = 1"`
+	content2 := `h2:
+  target: main
+  func: Example
+  raw: "_ = 1"`
+	p1 := writeCustomRules(t, "r1.yaml", content1)
+	p2 := writeCustomRules(t, "r2.yaml", content2)
+	t.Setenv(util.EnvOtelRules, p1)
+
+	// Prepare setup phase and set custom rules via environment variable and flag
+	sp := newTestSetupPhase()
+	err := sp.extract()
+	require.NoError(t, err)
+	sp.ruleConfig = p2
+
+	// Verify that the custom rule specified by environment variable has
+	// higher priority than the custom rule specified by flag
+	rules, err := sp.loadRules()
+	require.NoError(t, err)
 	require.NotEmpty(t, rules)
+	require.Len(t, rules, 1)
+	require.Equal(t, "h1", rules[0].GetName())
+
+	// Verify that the custom rule specified by flag has higher priority than
+	// default rules
+	t.Setenv(util.EnvOtelRules, "")
+	rules, err = sp.loadRules()
+	require.NoError(t, err)
+	require.NotEmpty(t, rules)
+	require.Len(t, rules, 1)
+	require.Equal(t, "h2", rules[0].GetName())
+
+	// Verify that the default rules are loaded
+	t.Setenv(util.EnvOtelRules, "")
+	sp.ruleConfig = ""
+
+	rules, err = sp.loadRules()
+	require.NoError(t, err)
+	require.NotEmpty(t, rules)
+	require.Greater(t, len(rules), 1, "default rules should be more than 1")
+}
+
+// Helper functions for constructing test data
+
+func newTestSetupPhase() *SetupPhase {
+	return &SetupPhase{
+		logger: slog.New(slog.NewTextHandler(io.Discard, nil)),
+	}
+}
+
+func newTestFuncRule(path, target string) *rule.InstFuncRule {
+	return &rule.InstFuncRule{
+		InstBaseRule: rule.InstBaseRule{
+			Target: target,
+		},
+		Path: path,
+	}
+}
+
+func newTestRuleSet(modulePath string, funcRules ...*rule.InstFuncRule) *rule.InstRuleSet {
+	rs := rule.NewInstRuleSet(modulePath)
+	fakeFilePath := filepath.Join(os.TempDir(), "file.go")
+	for _, fr := range funcRules {
+		rs.AddFuncRule(fakeFilePath, fr)
+	}
+	return rs
 }

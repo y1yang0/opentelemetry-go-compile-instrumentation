@@ -13,11 +13,13 @@ import (
 
 	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/ex"
 	"github.com/open-telemetry/opentelemetry-go-compile-instrumentation/tool/util"
+	"github.com/urfave/cli/v3"
 	"golang.org/x/tools/go/packages"
 )
 
 type SetupPhase struct {
-	logger *slog.Logger
+	logger     *slog.Logger
+	ruleConfig string
 }
 
 func (sp *SetupPhase) Info(msg string, args ...any)  { sp.logger.Info(msg, args...) }
@@ -134,7 +136,11 @@ func getPackageDir(pkg *packages.Package) string {
 }
 
 // Setup prepares the environment for further instrumentation.
-func Setup(ctx context.Context, args []string) error {
+func Setup(ctx context.Context, cmd *cli.Command) error {
+	// The args are "go build ..."
+	args := cmd.Args().Slice()
+	args = append([]string{"go"}, args...)
+
 	logger := util.LoggerFromContext(ctx)
 
 	if isSetup() {
@@ -143,7 +149,8 @@ func Setup(ctx context.Context, args []string) error {
 	}
 
 	sp := &SetupPhase{
-		logger: logger,
+		logger:     logger,
+		ruleConfig: cmd.String("rules"),
 	}
 
 	// Introduce additional hook code by generating otel.runtime.go
@@ -158,14 +165,15 @@ func Setup(ctx context.Context, args []string) error {
 	if err != nil {
 		return err
 	}
-	// Match the hook code with these dependencies
-	matched, err := sp.matchDeps(ctx, deps)
+
+	// Extract the embedded pkg module into local directory
+	err = sp.extract()
 	if err != nil {
 		return err
 	}
 
-	// Extract the embedded instrumentation modules into local directory
-	err = sp.extract()
+	// Match the hook code with these dependencies
+	matched, err := sp.matchDeps(ctx, deps)
 	if err != nil {
 		return err
 	}
@@ -201,7 +209,8 @@ func Setup(ctx context.Context, args []string) error {
 }
 
 // BuildWithToolexec builds the project with the toolexec mode
-func BuildWithToolexec(ctx context.Context, args []string) error {
+func BuildWithToolexec(ctx context.Context, cmd *cli.Command) error {
+	args := cmd.Args().Slice()
 	logger := util.LoggerFromContext(ctx)
 
 	// Add -toolexec=otel to the original build command and run it
@@ -236,7 +245,7 @@ func BuildWithToolexec(ctx context.Context, args []string) error {
 	return util.RunCmdWithEnv(ctx, env, newArgs...)
 }
 
-func GoBuild(ctx context.Context, args []string) error {
+func GoBuild(ctx context.Context, cmd *cli.Command) error {
 	logger := util.LoggerFromContext(ctx)
 	backupFiles := []string{"go.mod", "go.sum", "go.work", "go.work.sum"}
 	err := util.BackupFile(backupFiles)
@@ -245,7 +254,7 @@ func GoBuild(ctx context.Context, args []string) error {
 	}
 	defer func() {
 		var pkgs []*packages.Package
-		pkgs, err = getBuildPackages(ctx, args)
+		pkgs, err = getBuildPackages(ctx, cmd.Args().Slice())
 		if err != nil {
 			logger.DebugContext(ctx, "failed to get build packages", "error", err)
 		}
@@ -263,13 +272,13 @@ func GoBuild(ctx context.Context, args []string) error {
 		}
 	}()
 
-	err = Setup(ctx, os.Args[1:])
+	err = Setup(ctx, cmd)
 	if err != nil {
 		return err
 	}
 	logger.InfoContext(ctx, "Setup completed successfully")
 
-	err = BuildWithToolexec(ctx, args)
+	err = BuildWithToolexec(ctx, cmd)
 	if err != nil {
 		return err
 	}

@@ -247,11 +247,14 @@ test-unit/update-golden: package
 	set -euo pipefail
 	cd tool/internal/instrument && go test -v -timeout=5m -count=1 -update
 
+# - Does NOT use gotestfmt because v2.5.0 has a bug that causes panics when go test
+#   outputs build errors (JSON lines with ImportPath but no Package field).
+
 .ONESHELL:
 test-unit/tool: build package gotestfmt ## Run unit tests for tool modules only
 	@echo "Running tool unit tests..."
 	set -euo pipefail
-	go test -json -v -shuffle=on -timeout=5m -count=1 ./tool/... 2>&1 | tee ./gotest-unit-tool.log | gotestfmt
+	go test -json -v -shuffle=on -timeout=5m -count=1 ./tool/... 2>&1 | tee ./gotest-unit-tool.log
 
 # Notes on test-unit/pkg implementation:
 # - Uses find -maxdepth 3 to discover modules at pkg/instrumentation/{name}/ level only.
@@ -330,14 +333,14 @@ test-integration: go-protobuf-plugins ## Run integration tests
 test-integration: build build-demo gotestfmt
 	@echo "Running integration tests..."
 	set -euo pipefail
-	cd test && go test -json -v -shuffle=on -timeout=10m -count=1 -tags integration ./integration/... 2>&1 | tee ../gotest-integration.log | gotestfmt
+	go -C "test" test -json -v -shuffle=on -timeout=10m -count=1 -tags integration ./integration/... 2>&1 | tee ../gotest-integration.log | gotestfmt
 
 .ONESHELL:
 test-integration/coverage: ## Run integration tests with coverage report
 test-integration/coverage: build build-demo gotestfmt
 	@echo "Running integration tests with coverage report..."
 	set -euo pipefail
-	cd test && go test -json -v -shuffle=on -timeout=10m -count=1 -tags integration ./integration/... -coverprofile=../coverage-integration.txt -covermode=atomic 2>&1 | tee ../gotest-integration.log | gotestfmt
+	go -C "test" test -json -v -shuffle=on -timeout=10m -count=1 -tags integration ./integration/... -coverprofile=../coverage-integration.txt -covermode=atomic 2>&1 | tee ../gotest-integration.log | gotestfmt
 
 .ONESHELL:
 test-e2e: ## Run e2e tests
@@ -408,7 +411,7 @@ embedmd: ## Install embedmd if not present
 checkmake: ## Install checkmake if not present
 	@if ! command -v checkmake >/dev/null 2>&1; then \
 		echo "Installing checkmake..."; \
-		go install github.com/mrtazz/checkmake/cmd/checkmake@latest; \
+		go install github.com/checkmake/checkmake/cmd/checkmake@latest; \
 	fi
 
 go-protobuf-plugins: ## Install Go protobuf plugins if not present
