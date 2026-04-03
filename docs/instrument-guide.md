@@ -1,4 +1,9 @@
-# Adding a New Instrumentation Hook
+---
+title: Adding a New Instrumentation Hook
+linkTitle: Instrumentation Guide
+weight: 60
+description: Define rules, implement hooks, and verify instrumentation for a library.
+---
 
 This guide outlines the workflow for adding compile-time instrumentation for a third-party library.
 
@@ -33,7 +38,7 @@ inject_to_grpc_newserver:
 * `path`: Import path where the hook functions are defined.
 
 > [!NOTE]
-> In addition to function rules, there are other types of rules available. For detailed information on these, refer to [rules.md](rules.md).
+> In addition to function rules, there are other types of rules available. For detailed information on these, refer to [rules.md]({{< relref "rules.md" >}}).
 
 ## 2. Implement Hooks
 

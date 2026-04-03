@@ -7,7 +7,7 @@ SHELL := /bin/bash
 .PHONY: all test test-unit test-integration test-e2e format lint build build-all build/pkg install package clean \
         build-demo build-demo-grpc build-demo-http format/go format/yaml lint/go lint/yaml \
         lint/action lint/makefile lint/license-header lint/license-header/fix lint/dockerfile actionlint yamlfmt gotestfmt ratchet ratchet/pin \
-        ratchet/update ratchet/check golangci-lint embedmd checkmake hadolint help docs check-embed check-api-sync check-golden-files \
+        ratchet/update ratchet/check golangci-lint embedmd checkmake hadolint help docs website check-embed check-api-sync check-golden-files \
         test-unit/update-golden test-unit/tool test-unit/pkg test-unit/demo \
         test-unit/coverage test-unit/tool/coverage test-unit/pkg/coverage \
         test-integration/coverage test-e2e/coverage \
@@ -257,6 +257,10 @@ docs: ## Update embedded documentation in markdown files
 docs: $(EMBEDMD) tmp/make-help.txt
 	@echo "Updating embedded documentation..."
 	$(EMBEDMD) -w CONTRIBUTING.md README.md
+
+website: ## Build the Hugo documentation site (Hugo Extended, Node.js, Go for modules)
+	@rm -rf static/content/en/docs && cp -a docs static/content/en/docs
+	@cd static && npm ci && go mod download && hugo --gc --minify
 
 tmp/make-help.txt: ## Generate make help output for embedding in documentation
 tmp/make-help.txt: $(MAKEFILE_LIST)

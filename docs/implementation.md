@@ -1,4 +1,9 @@
-# Introduction
+---
+title: Implementation
+linkTitle: Implementation
+weight: 30
+description: Technical architecture, trampoline injection, and two-phase build.
+---
 
 This document outlines a method for injecting runtime hooks into target functions
 in Go programs, enabling dynamic monitoring and modification of function behavior.
@@ -78,7 +83,7 @@ From the build_plan.txt file, the tool extracts all third-party module paths
 
 ## 1.2 Add Dependencies
 
-The hook configuration is specified by [ux-design.md](ux-design.md),
+The hook configuration is specified by [ux-design.md]({{< relref "ux-design.md" >}}),
 which includes the `ImportPath` field where the target function resides. The tool
 matches this `ImportPath` against the pre-collected third-party dependencies and
 generates a file (e.g., otel_import.go) to import the SDK and corresponding hook

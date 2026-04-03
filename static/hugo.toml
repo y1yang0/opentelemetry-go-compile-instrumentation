@@ -1,0 +1,94 @@
+# Hugo site for GitHub Pages (Docsy). Site root is static/.
+# Use a root baseURL for local `hugo server` so http://localhost:1313/ works (no subpath).
+# GitHub Actions always passes --baseURL for production; do not rely on this for deployed URLs.
+baseURL = "http://localhost:1313/"
+title = "OpenTelemetry Go Compile-Time Instrumentation"
+description = "Compile-time OpenTelemetry instrumentation for Go applications."
+
+enableRobotsTXT = true
+enableGitInfo = true
+enableEmoji = true
+
+defaultContentLanguage = "en"
+defaultContentLanguageInSubdir = true
+
+[build]
+  buildStats = { enable = true }
+
+[languages]
+  [languages.en]
+    languageName = "English"
+    languageCode = "en"
+    weight = 1
+    title = "OTel Go Compile Instrumentation"
+    contentDir = "content/en"
+    [languages.en.params]
+      description = "Documentation for OpenTelemetry Go compile-time instrumentation."
+
+  [languages.zh]
+    languageName = "中文"
+    languageCode = "zh-cn"
+    weight = 2
+    title = "OTel Go 编译期插桩"
+    contentDir = "content/zh"
+    [languages.zh.params]
+      description = "OpenTelemetry Go 编译期插桩项目文档。"
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.parser]
+      attribute = true
+    [markup.goldmark.renderer]
+      unsafe = true
+  [markup.highlight]
+    style = "tango"
+
+[params]
+  copyright = "The OpenTelemetry Authors"
+  privacy_policy = ""
+  version_menu = ""
+  archived_version = false
+  url_latest_version = "https://open-telemetry.github.io/opentelemetry-go-compile-instrumentation/"
+  github_repo = "https://github.com/open-telemetry/opentelemetry-go-compile-instrumentation"
+  github_project_repo = "https://github.com/open-telemetry/opentelemetry-go-compile-instrumentation"
+  github_subdir = ""
+  gcs_engine_id = ""
+  offlineSearch = true
+  offlineSearchSummaryLength = 200
+  offlineSearchMaxResults = 25
+  prism_syntax_highlighting = false
+
+[params.ui]
+  sidebar_menu_compact = false
+  sidebar_menu_foldable = true
+  navbar_logo = true
+  breadcrumb_disable = false
+  sidebar_search_disable = false
+  navbar_translucent_over_cover_disable = false
+  footer_about_enable = true
+
+[params.links]
+  [[params.links.user]]
+    name = "GitHub"
+    url = "https://github.com/open-telemetry/opentelemetry-go-compile-instrumentation"
+    icon = "fab fa-github"
+    desc = "Source repository"
+
+[module]
+  [module.hugoVersion]
+    extended = true
+    min = "0.110.0"
+
+  [[module.imports]]
+    path = "github.com/google/docsy"
+    disable = false
+
+  [[module.imports]]
+    path = "github.com/google/docsy/dependencies"
+    disable = false
+
+# English docs: copy of ../docs at content/en/docs (see Makefile website + CI; not committed).
+ignoreFiles = ["go.mod", "semantic-conventions.zh-CN.md"]
+
+[outputs]
+  home = ["HTML", "RSS"]

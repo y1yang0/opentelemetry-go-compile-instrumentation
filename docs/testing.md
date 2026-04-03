@@ -1,4 +1,9 @@
-# Testing
+---
+title: Testing
+linkTitle: Testing
+weight: 80
+description: Unit, integration, and E2E test layout and commands.
+---
 
 This document describes the testing strategy for the project, the different test categories, and when to use each.
 

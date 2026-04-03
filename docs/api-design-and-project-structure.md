@@ -1,4 +1,9 @@
-# API Design & Project Structure
+---
+title: API Design & Project Structure
+linkTitle: API Design
+weight: 40
+description: Package layout, hook model, and public APIs.
+---
 
 The project structure is as follows:
 

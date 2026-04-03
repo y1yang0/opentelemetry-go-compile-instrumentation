@@ -56,6 +56,7 @@ make test
 
 ### Documentation
 
+- **Published documentation site** (GitHub Pages): [open-telemetry.github.io/opentelemetry-go-compile-instrumentation](https://open-telemetry.github.io/opentelemetry-go-compile-instrumentation/) — English and Chinese; Markdown source is [`docs/`](./docs/) (the site build copies it into `static/` — run `make website` locally). If you see **404**, set **Settings → Pages → Source** to **GitHub Actions**, ensure the “Deploy Hugo site to Pages” workflow succeeded, then open `https://<owner>.github.io/<repo>/` (include the repository name in the path).
 - [Getting Started Guide](./docs/getting-started.md) - Setup and usage
 - [UX Design](./docs/ux-design.md) - Configuration options
 - [Implementation Details](./docs/implementation.md) - Technical architecture
@@ -64,6 +65,7 @@ make test
 - [Instrumentation Guide](./docs/instrument-guide.md) - Add instrumentation hook for new libraries
 - [Instrumentation Rules](./docs/rules.md) - Rule types and YAML format reference
 - [Testing](./docs/testing.md) - Testing strategy, categories, and how to run tests
+- [Profiling](./docs/profiling.md) - Built-in profiling during `otelc` builds
 
 ### Video Talks
 

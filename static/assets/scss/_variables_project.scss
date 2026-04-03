@@ -1,0 +1,28 @@
+// Copyright The OpenTelemetry Authors
+// SPDX-License-Identifier: Apache-2.0
+
+// Global brand palette requested by project maintainers:
+// orange: rgb(245, 167, 0), blue: rgb(79, 97, 171)
+$otel-orange: rgb(245, 167, 0) !default;
+$otel-blue: rgb(79, 97, 171) !default;
+
+// Core theme colors
+$primary: $otel-blue !default;
+$secondary: #3b4f8f !default;
+$info: #4f61ab !default;
+$success: #3f9a8a !default;
+$warning: $otel-orange !default;
+$danger: #dc2626 !default;
+
+// Links: orange for clear contrast on light backgrounds
+$link-color: $otel-orange !default;
+$link-hover-color: #cf8d00 !default;
+$link-decoration: underline !default;
+$link-shade-percentage: 16% !default;
+
+// Navbar / dark chrome
+$dark: #243054 !default;
+
+$td-enable-google-fonts: true !default;
+$google_font_name: "Open Sans" !default;
+$google_font_family: "Open Sans:300,300i,400,400i,600,600i" !default;

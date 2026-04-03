@@ -31,3 +31,11 @@ coverage.out
 
 profiles
 .pprof
+
+# Hugo site (static/ is the Hugo project root)
+static/public/
+static/resources/
+static/.hugo_build.lock
+static/node_modules/
+# Staged copy of repo docs/ for English (see Makefile website + hugo-pages workflow)
+static/content/en/docs/

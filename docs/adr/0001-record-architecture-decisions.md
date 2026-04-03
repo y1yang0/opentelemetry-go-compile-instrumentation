@@ -1,4 +1,9 @@
-# 1. Record Architecture Decisions
+---
+title: "1. Record Architecture Decisions"
+linkTitle: "ADR 0001 — Record ADRs"
+weight: 201
+description: Use ADRs to capture architectural decisions for this project.
+---
 
 Date: 2026-03-19
 

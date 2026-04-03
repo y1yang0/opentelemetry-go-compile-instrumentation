@@ -1,4 +1,9 @@
-# Getting Started
+---
+title: Getting Started
+linkTitle: Getting Started
+weight: 10
+description: Setup, quick start, and pointers to deeper documentation.
+---
 
 OpenTelemetry Go Compile-Time Instrumentation is a tool that automatically instruments your Go applications with [OpenTelemetry](https://opentelemetry.io/) at compile-time.
 No manual code changes required.
@@ -49,10 +54,10 @@ This approach provides dynamic instrumentation without runtime overhead or invas
 
 ## Learn More
 
-- [User Experience Design](./ux-design.md) - Detailed UX documentation and configuration options
-- [Implementation Details](./implementation.md) - Technical architecture and internals
-- [API Design](./api-design-and-project-structure.md) - API structure and project organization
-- [Contributing Guide](../CONTRIBUTING.md) - How to contribute to the project
+- [User Experience Design]({{< relref "ux-design.md" >}}) - Detailed UX documentation and configuration options
+- [Implementation Details]({{< relref "implementation.md" >}}) - Technical architecture and internals
+- [API Design]({{< relref "api-design-and-project-structure.md" >}}) - API structure and project organization
+- [Contributing Guide](https://github.com/open-telemetry/opentelemetry-go-compile-instrumentation/blob/main/CONTRIBUTING.md) - How to contribute to the project
 
 ### Video Talks
 

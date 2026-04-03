@@ -1,4 +1,9 @@
-# 2. API Design and Project Structure
+---
+title: "2. API Design and Project Structure"
+linkTitle: "ADR 0002 — API design"
+weight: 202
+description: Hook model, HookContext, semconv helpers, and two-phase build.
+---
 
 Date: 2026-03-19
 
@@ -14,7 +19,7 @@ The project also needs a project layout that separates the compile-time tool fro
 
 ## Decision
 
-The full design is documented in [`docs/api-design-and-project-structure.md`](../api-design-and-project-structure.md). The key decisions captured here are:
+The full design is documented in [`api-design-and-project-structure.md`]({{< relref "../api-design-and-project-structure.md" >}}). The key decisions captured here are:
 
 **Hook model**: Instrumentation is expressed as pairs of plain Go functions — `Before*` and `After*` hooks — injected around target function calls via AST rewriting. This is simpler than an instrumenter hierarchy and avoids heavy abstractions.
 

@@ -1,4 +1,9 @@
-# Instrumentation Rules Documentation
+---
+title: Instrumentation Rules
+linkTitle: Rules
+weight: 70
+description: YAML rule types, fields, and examples for otelc.
+---
 
 This document explains the different types of instrumentation rules used by the Go compile-time instrumentation tool. These rules, defined in YAML files, allow for the injection of code into target Go packages.
 

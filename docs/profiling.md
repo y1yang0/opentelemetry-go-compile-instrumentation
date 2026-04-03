@@ -1,4 +1,9 @@
-# Built-in Profiling
+---
+title: Built-in Profiling
+linkTitle: Profiling
+weight: 90
+description: CPU, heap, and trace profiles during otelc builds.
+---
 
 `otelc` has built-in support for collecting pprof CPU, heap, and execution trace
 profiles during a build. This lets you measure and compare the overhead of

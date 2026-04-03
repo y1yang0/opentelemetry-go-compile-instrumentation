@@ -1,4 +1,9 @@
-# Semantic Conventions Management
+---
+title: Semantic Conventions Management
+linkTitle: Semantic Conventions
+weight: 50
+description: Weaver workflows, semconv packages, and versioning.
+---
 
 This document describes the tooling and workflow for managing [OpenTelemetry Semantic Conventions](https://opentelemetry.io/docs/concepts/semantic-conventions/) in the compile-instrumentation project.
 

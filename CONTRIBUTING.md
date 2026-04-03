@@ -49,6 +49,13 @@ Run `make help` to see all available targets:
 make help
 ```
 
+#### Documentation website
+
+The Hugo + Docsy site (GitHub Pages) is built from the [`static/`](./static/) directory. English Markdown is the same as [`docs/`](./docs/); `make website` and the GitHub Actions workflow **copy** `docs/` to `static/content/en/docs/` before running Hugo (that directory is gitignored and must not be committed as a symlink).
+
+- **Build locally**: `make website` (requires [Hugo Extended](https://gohugo.io/installation/), Node.js for PostCSS, and Go for Hugo modules). The Hugo theme is pinned in [`static/go.mod`](./static/go.mod); avoid running `go mod tidy` in `static/` unless you are intentionally upgrading [Docsy](https://www.docsy.dev/) (newer Docsy releases may require a newer Hugo than your local install).
+- **Preview with `hugo server`**: After staging docs (`make website` copies `docs/` into `static/content/en/docs/`), run `cd static && hugo server` and open **http://localhost:1313/** — [`static/hugo.toml`](./static/hugo.toml) uses `baseURL = "http://localhost:1313/"` so the site is at the server root (not under a `/repo-name/` path). Production URLs on GitHub Pages are set only by the Actions workflow (`--baseURL`).
+
 #### Build Targets
 
 - `make build` - Build the instrumentation tool (includes packaging)

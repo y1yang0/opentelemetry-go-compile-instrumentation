@@ -1,0 +1,184 @@
+// Copyright The OpenTelemetry Authors
+// SPDX-License-Identifier: Apache-2.0
+
+// Project-specific overrides (navbar, home, link contrast on tinted sections).
+
+.td-navbar .navbar-brand img {
+  max-height: 2.25rem;
+  width: auto;
+}
+
+// OpenTelemetry wordmark in navbar (assets/icons/logo.svg)
+.otel-navbar-wordmark {
+  display: inline-flex;
+  align-items: center;
+  line-height: 0;
+}
+
+.otel-navbar-wordmark svg {
+  height: 1.75rem;
+  width: auto;
+  max-width: 11rem;
+  vertical-align: middle;
+}
+
+@media (min-width: 768px) {
+  .otel-navbar-wordmark svg {
+    height: 2rem;
+    max-width: 13rem;
+  }
+}
+
+// Home hero + sections: cleaner, lighter layout with blue/orange accents.
+body.td-home .td-cover-block {
+  background-color: rgb(79, 97, 171);
+  background-image:
+    radial-gradient(circle at 82% 16%, rgba(245, 167, 0, 0.35) 0%, rgba(245, 167, 0, 0) 35%),
+    linear-gradient(145deg, #1f2a52 0%, rgb(79, 97, 171) 64%, #5f73c3 100%);
+}
+
+body.td-home .td-cover-block.td-overlay--dark {
+  --bs-dark-rgb: 31, 42, 82;
+}
+
+body.td-home .td-cover-block .display-1 {
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+body.td-home .td-cover-block .btn-info {
+  background-color: rgb(245, 167, 0);
+  border-color: rgb(245, 167, 0);
+  color: #1f2a52;
+  font-weight: 700;
+}
+
+body.td-home .td-cover-block .btn-info:hover,
+body.td-home .td-cover-block .btn-info:focus {
+  background-color: #e69b00;
+  border-color: #e69b00;
+  color: #15203f;
+}
+
+// Home body sections: replace heavy full-color blocks with light panels.
+body.td-home .td-box--primary,
+body.td-home .td-box--dark {
+  background: #f8faff;
+  color: #0f172a;
+}
+
+body.td-home .td-box--primary .td-arrow-down::before,
+body.td-home .td-box--dark .td-arrow-down::before {
+  border-color: #f8faff transparent transparent transparent;
+}
+
+// OTel.io-style home sections: spacious, clean, no cards.
+body.td-home .home-section {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem;
+}
+
+body.td-home .home-section h2 {
+  font-weight: 700;
+  color: #1f2a52;
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+body.td-home .home-section p {
+  color: #475569;
+  font-size: 1.1rem;
+  line-height: 1.8;
+}
+
+// Integration badges
+body.td-home .integration-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+body.td-home .integration-grid .integration-item {
+  background: #fff;
+  border: 1px solid #e6ebfb;
+  border-radius: 12px;
+  padding: 1.25rem 2rem;
+  font-weight: 600;
+  color: #1f2a52;
+  font-size: 1.1rem;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+body.td-home .integration-grid .integration-item:hover {
+  border-color: #cfd8fb;
+  box-shadow: 0 4px 12px rgba(30, 41, 84, 0.08);
+}
+
+// Command example
+body.td-home .command-example {
+  background: #1f2a52;
+  color: #e2e8f0;
+  border-radius: 12px;
+  padding: 1.5rem 2rem;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 1.05rem;
+  max-width: 500px;
+  margin: 2rem auto 0;
+  text-align: left;
+}
+
+body.td-home .command-example .prompt {
+  color: rgb(245, 167, 0);
+}
+
+// Resource links
+body.td-home .resource-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+body.td-home .resource-links a {
+  display: inline-block;
+  padding: 0.75rem 1.75rem;
+  border: 2px solid rgb(79, 97, 171);
+  border-radius: 8px;
+  color: rgb(79, 97, 171);
+  font-weight: 600;
+  font-size: 1.05rem;
+  text-decoration: none;
+  transition: background-color 180ms ease, color 180ms ease;
+}
+
+body.td-home .resource-links a:hover {
+  background: rgb(79, 97, 171);
+  color: #fff;
+}
+
+// Top nav: do not use body link orange on dark navbar.
+.td-navbar[data-bs-theme="dark"] .navbar-nav .nav-link {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.td-navbar[data-bs-theme="dark"] .navbar-nav .nav-link:hover,
+.td-navbar[data-bs-theme="dark"] .navbar-nav .nav-link:focus,
+.td-navbar[data-bs-theme="dark"] .navbar-nav .nav-link.active {
+  color: #fff;
+}
+
+// Sidebar: keep orange links but improve hover/active legibility.
+.td-sidebar .td-sidebar-link.active,
+.td-sidebar .td-sidebar-link:hover {
+  font-weight: 600;
+}
+
+// Main doc content: stronger underline hint for orange links.
+.td-content main a:not(.btn):not(.nav-link) {
+  text-underline-offset: 0.12em;
+}

@@ -1,4 +1,9 @@
-# User Experience Design
+---
+title: User Experience Design
+linkTitle: UX Design
+weight: 20
+description: Configuration, CLI behavior, and user-facing design for otelc.
+---
 
 ## Introduction
 
